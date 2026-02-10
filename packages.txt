@@ -1,5 +1,3 @@
-# System packages for Playwright browsers
-# Required for headless Chromium on Streamlit Cloud
 libnss3
 libnspr4
 libatk1.0-0
