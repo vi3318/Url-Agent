@@ -9,11 +9,41 @@ import json
 import time
 import logging
 import os
+import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
 import threading
 from io import StringIO, BytesIO
+
+# Install Playwright browsers on first run (for Streamlit Cloud)
+@st.cache_resource
+def install_playwright_browsers():
+    """Install Playwright Chromium browser on first run."""
+    try:
+        # Check if browsers are already installed
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            try:
+                browser = p.chromium.launch(headless=True)
+                browser.close()
+                return True
+            except Exception:
+                pass
+        
+        # Try to install browsers
+        result = subprocess.run(
+            ["playwright", "install", "chromium"],
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        return result.returncode == 0
+    except Exception as e:
+        return False
+
+# Try to install Playwright browsers
+_playwright_available = install_playwright_browsers()
 
 # Configure logging
 logging.basicConfig(
@@ -296,12 +326,17 @@ def render_sidebar():
         help="Follow robots.txt crawling rules"
     )
     
-    # JavaScript rendering
+    # JavaScript rendering - check if Playwright is available
+    js_available = _playwright_available
     enable_js = st.sidebar.checkbox(
         "Enable JavaScript Rendering",
-        value=True,
-        help="Use headless browser for JS-heavy pages (requires Playwright)"
+        value=js_available,
+        disabled=not js_available,
+        help="Use headless browser for JS-heavy pages (requires Playwright)" + 
+             ("" if js_available else " - ⚠️ Not available on this deployment")
     )
+    if not js_available:
+        st.sidebar.caption("⚠️ JS rendering unavailable. Static HTML only.")
     
     # Output format
     st.sidebar.markdown("---")
