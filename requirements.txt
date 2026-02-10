@@ -1,0 +1,32 @@
+# Web Crawler Dependencies
+# Production-grade web crawler with Streamlit frontend
+
+# Core HTTP & Parsing
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=5.1.0
+brotli>=1.1.0  # For Brotli decompression (many modern sites use br encoding)
+
+# JavaScript Rendering (Headless Browser)
+playwright>=1.41.0
+
+# Web Framework
+streamlit>=1.31.0
+
+# Data Processing
+pandas>=2.1.0
+
+# Document Export
+python-docx>=1.1.0
+
+# Utilities
+urllib3>=2.1.0
+
+# Optional: For enhanced robots.txt parsing
+# reppy>=0.4.14
+
+# Development & Testing (optional)
+# pytest>=7.4.0
+# pytest-asyncio>=0.23.0
+# black>=24.1.0
+# flake8>=7.0.0
