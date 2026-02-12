@@ -566,6 +566,22 @@ def main():
         unsafe_allow_html=True
     )
     
+    # Crawler Mode Selector
+    st.sidebar.markdown("## 🎯 Crawler Mode")
+    crawler_mode = st.sidebar.radio(
+        "Select Mode",
+        options=["standard", "deep_docs"],
+        format_func=lambda x: "🌐 Standard Crawler" if x == "standard" else "📚 Deep Documentation Crawler",
+        help="Standard: Regular website crawling. Deep Docs: For documentation sites with expandable content."
+    )
+    
+    # If deep docs mode selected, show that interface
+    if crawler_mode == "deep_docs":
+        from pages.deep_crawler import render_deep_crawler_page
+        render_deep_crawler_page()
+        return
+    
+    # Standard crawler mode continues below
     # Sidebar configuration
     config = render_sidebar()
     

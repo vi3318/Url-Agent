@@ -7,6 +7,7 @@ from .crawler import WebCrawler, CrawlConfig, CrawlResult
 from .scraper import PageScraper, PageData
 from .robots import RobotsHandler
 from .utils import URLNormalizer, RateLimiter, RetryHandler
+from .deep_crawler import DeepDocCrawler, DeepCrawlConfig, DeepCrawlResult, DeepPageData, deep_crawl_docs
 
 __all__ = [
     'WebCrawler',
@@ -17,7 +18,13 @@ __all__ = [
     'RobotsHandler',
     'URLNormalizer',
     'RateLimiter',
-    'RetryHandler'
+    'RetryHandler',
+    # Deep crawler
+    'DeepDocCrawler',
+    'DeepCrawlConfig', 
+    'DeepCrawlResult',
+    'DeepPageData',
+    'deep_crawl_docs',
 ]
 
 __version__ = '1.0.0'
