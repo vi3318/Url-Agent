@@ -184,6 +184,21 @@ class PageScraper:
         try:
             soup = BeautifulSoup(html, _BS_PARSER)
             
+            # ── Parse-quality guard ──────────────────────────────────────
+            # lxml occasionally produces an empty tree from valid HTML
+            # (observed on MDN / Next.js SSR pages).  If the body has text
+            # but lxml found zero <a> tags, retry with html.parser.
+            if _BS_PARSER == "lxml":
+                body = soup.find('body')
+                body_len = len(body.get_text(strip=True)) if body else 0
+                a_count = len(soup.find_all('a', href=True))
+                if body_len > 200 and a_count == 0:
+                    logger.info(
+                        f"[PARSER] lxml produced 0 links from {body_len} chars "
+                        f"of body text — retrying with html.parser"
+                    )
+                    soup = BeautifulSoup(html, 'html.parser')
+            
             # Remove unwanted elements
             self._remove_unwanted_elements(soup)
             
@@ -527,6 +542,15 @@ def detect_js_required(html: str) -> bool:
         True if JavaScript rendering is likely needed
     """
     soup = BeautifulSoup(html, _BS_PARSER)
+    
+    # Guard: if lxml produced a broken parse, retry with html.parser
+    # so we don't falsely flag a valid SSR page as needing JS.
+    if _BS_PARSER == "lxml":
+        body = soup.find('body')
+        body_len = len(body.get_text(strip=True)) if body else 0
+        a_count = len(soup.find_all('a', href=True))
+        if body_len > 200 and a_count == 0:
+            soup = BeautifulSoup(html, 'html.parser')
     
     # Check if body is nearly empty (very strong indicator)
     body = soup.find('body')
