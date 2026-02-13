@@ -1,3 +1,120 @@
+# 🕷️ CLI‑First Production Web Crawler (Internal)
+
+Stable, scope‑aware crawler focused on CLI use and safe JS expansion. Designed for internal deployment on a single machine (Python + dependencies only). UI is optional; stability and limits are enforced by default.
+
+## What’s included
+ - Crawl entire domains or scoped subpaths (prefix filtering)
+ - Static fetch with JS fallback (Playwright) for rendered pages
+ - Safe expandable click logic (collapsibles/TOCs) with strict limits
+ - Exports: JSON, CSV, DOCX
+ - robots.txt awareness, rate limiting, retries
+ - Structured logging and clear stop reasons
+
+## Safety limits (enforced)
+ - Per page: 20s timeout, wait_until=domcontentloaded (not networkidle), max 50 expandable clicks, no full DOM dumps
+ - Crawl: MAX_PAGES default 150, MAX_DEPTH default 5, visited set maintained, graceful stop when limits hit
+ - Rate limiting: configurable delay between pages
+
+## Installation (local machine)
+ ```bash
+ cd web_crawler
+ python -m venv venv
+ source venv/bin/activate   # Windows: venv\Scripts\activate
+ pip install -r requirements.txt
+ playwright install chromium   # required for JS rendering
+ ```
+
+## CLI usage (standard crawler)
+ Runs the breadth/depth crawler (static first, JS optional fallback).
+
+ ```bash
+ python -m crawler.crawler <url> \
+    --depth 3 \
+    --pages 100 \
+    --output-json output.json \
+    --output-csv output.csv \
+    --rate 1.0 \
+    --no-js        # add this flag to disable JS
+ ```
+
+Flags available today (from `crawler.py`):
+ - `--depth`: max crawl depth (default 3)
+ - `--pages`: max pages (default 100)
+ - `--output-json`: JSON export path (default `output.json`)
+ - `--output-csv`: CSV export path (default `output.csv`)
+ - `--rate`: requests per second (default 1.0)
+ - `--no-js`: disable Playwright rendering
+
+> Note: A DOCX export helper exists in code for the deep crawler, but the CLI wiring for DOCX isn’t exposed yet. Use the Python API if you need DOCX today.
+
+## Scope handling
+ - `https://example.com` → crawl entire domain
+ - `https://example.com/docs` → crawl only `/docs/**`
+ Same-domain + path-prefix rules prevent out‑of‑scope hops.
+
+## Safe JS expansion (deep crawler path)
+ - Load page with `domcontentloaded`
+ - Expand visible accordions/sidebar items once, max 50 clicks per page
+ - Extract links after expansion, filter to in-scope URLs
+ - Fallback to static HTML parse if Playwright fails (no crash)
+
+## Outputs
+ - JSON: structured page data + stats/errors
+ - CSV: flattened rows for sheets
+ - DOCX: per-page title, URL, headings, content (via `DeepDocCrawler.export_docx`)
+
+## How to test manually (you run these)
+ 1) **Env prep** (once): create venv, install requirements, `playwright install chromium` (see Installation above).
+ 2) **Quick static crawl** (small, fast):
+ ```bash
+ python -m crawler.crawler https://example.com --depth 1 --pages 10 --output-json out.json --output-csv out.csv --no-js
+ ```
+ 3) **JS-enabled crawl** (renders pages):
+ ```bash
+ python -m crawler.crawler https://developer.mozilla.org/en-US/docs --depth 2 --pages 30 --output-json mdn.json --output-csv mdn.csv
+ ```
+ 4) **Scoped subpath crawl**:
+ ```bash
+ python -m crawler.crawler https://docs.python.org/3/library --depth 2 --pages 40 --output-json pydocs.json --output-csv pydocs.csv
+ ```
+ 5) **Check outputs**: verify JSON/CSV files exist and contain pages; confirm stats (pages_crawled, errors) look reasonable.
+
+Suggested test URLs (safe/public):
+ - Static: `https://example.com`, `https://httpbin.org/html`
+ - Doc subpath: `https://docs.python.org/3/library`
+ - JS-heavy docs: `https://developer.mozilla.org/en-US/docs`
+
+## Python API (for DOCX or custom flows)
+ ```python
+ from crawler.deep_crawler import DeepDocCrawler, DeepCrawlConfig
+
+ config = DeepCrawlConfig(max_pages=50, max_depth=3)
+ crawler = DeepDocCrawler(config)
+ result = crawler.crawl("https://developer.mozilla.org/en-US/docs")
+
+ # Export
+ crawler.export_json(result, "mdn.json")
+ crawler.export_csv(result, "mdn.csv")
+ crawler.export_docx(result, "mdn.docx")
+ ```
+
+## Deployment (internal machine)
+ - Keep it local: Python + dependencies only; no cloud services.
+ - Use a service user with network egress to target docs sites.
+ - Persist outputs to a shared folder (JSON/CSV/DOCX). No DB required.
+ - For repeated runs, wrap the CLI call in a cron/systemd task with conservative limits.
+
+## Troubleshooting
+ - Playwright missing: `playwright install chromium`
+ - JS hangs: add `--no-js` or lower `--depth/--pages`
+ - Slow/blocked: reduce `--rate`, verify robots.txt, and ensure corporate proxy rules allow egress.
+
+## Notes on limits
+ - Per-page: 20s timeout, domcontentloaded wait, 50 click cap
+ - Crawl: max_pages default 150, max_depth default 5
+ - Stops cleanly with a reason (limit hit, queue exhausted, or user stop)
+
+**Stability first. UI optional. Respect targets’ robots and terms.**
 # 🕷️ Production Web Crawler
 
 A production-grade, in-depth web crawler that can crawl an entire website and export scraped content to CSV and JSON formats. Built with Python, featuring a Streamlit frontend and support for JavaScript-rendered pages.

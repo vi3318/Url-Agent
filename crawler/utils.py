@@ -16,6 +16,36 @@ import random
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Tiny helper: keep a trailing "/" on directory-like URLs so that
+# ``urljoin(base, relative)`` resolves *inside* the directory instead of
+# the parent.  ``urljoin("…/oedmh", "page.html")`` →  parent dir (wrong)
+# ``urljoin("…/oedmh/", "page.html")`` →  /oedmh/page.html  (correct)
+# ---------------------------------------------------------------------------
+_FILE_EXT_RE = re.compile(r'\.[a-zA-Z0-9]{1,10}$')   # e.g.  .html  .php
+
+
+def ensure_joinable_base(url: str) -> str:
+    """Return *url* with a trailing ``/`` when the path looks like a directory.
+
+    If the path already ends with ``/`` or has a recognisable file extension
+    (e.g. ``.html``, ``.php``), the URL is returned unchanged.  This makes
+    ``urljoin`` resolve relative hrefs correctly.
+    """
+    parsed = urlparse(url)
+    path = parsed.path or '/'
+    # Already ends with "/" → fine
+    if path.endswith('/'):
+        return url
+    # Has a file extension → it *is* a file, not a directory
+    last_segment = path.rsplit('/', 1)[-1]
+    if _FILE_EXT_RE.search(last_segment):
+        return url
+    # Directory-like path with trailing slash stripped → restore it
+    new_path = path + '/'
+    return urlunparse((parsed.scheme, parsed.netloc, new_path,
+                       parsed.params, parsed.query, parsed.fragment))
+
 
 class URLNormalizer:
     """
@@ -84,7 +114,7 @@ class URLNormalizer:
         
         # Resolve relative URLs
         if base_url:
-            url = urljoin(base_url, url)
+            url = urljoin(ensure_joinable_base(base_url), url)
         
         try:
             parsed = urlparse(url)

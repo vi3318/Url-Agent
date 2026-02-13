@@ -2,37 +2,66 @@
 Deep Interactive Crawler
 Specialized crawler for hierarchical documentation sites with expandable content.
 Clicks dropdowns, expands accordions, and crawls revealed sub-links.
+
+SAFETY FEATURES:
+- Strict per-page timeout (20s default)
+- Per-page click limit (50 clicks max)
+- Static HTML fallback when JS rendering fails
+- Graceful shutdown when limits are reached
+- No networkidle waits (uses domcontentloaded)
 """
 
 import logging
 import time
 import json
 import re
-from typing import List, Dict, Set, Optional, Callable, Any
+import requests
+from typing import List, Dict, Set, Optional, Callable, Any, Tuple
 from dataclasses import dataclass, field
 from urllib.parse import urlparse, urljoin
 from pathlib import Path
+from bs4 import BeautifulSoup
 
 from playwright.sync_api import sync_playwright, Page, Browser, BrowserContext
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
-from .scraper import PageData
-from .utils import URLNormalizer
+from .scraper import PageData, PageScraper
+from .scope_filter import ScopeFilter
+from .utils import URLNormalizer, ensure_joinable_base
+from . import interaction_policy
 
 logger = logging.getLogger(__name__)
 
+# Best-available HTML parser for BeautifulSoup (static fallback path)
+try:
+    import lxml  # noqa: F401
+    _BS_PARSER = "lxml"
+except ImportError:
+    _BS_PARSER = "html.parser"
 
 @dataclass
 class DeepCrawlConfig:
-    """Configuration for deep interactive crawling."""
-    # Crawl limits
-    max_pages: int = 500
-    max_depth: int = 10
-    timeout: int = 60000  # ms - longer for slow doc sites
+    """
+    Configuration for deep interactive crawling.
+    
+    SAFETY LIMITS (enforced strictly to prevent hangs):
+    - Per-page timeout: 20 seconds max
+    - Wait strategy: domcontentloaded (NOT networkidle)
+    - Max expandable clicks per page: 50
+    - Max pages: 150 (default)
+    - Max depth: 5 (default)
+    """
+    # Crawl limits - STRICT DEFAULTS
+    max_pages: int = 150  # Reduced for stability
+    max_depth: int = 5    # Reasonable depth limit
+    timeout: int = 20000  # 20 seconds - strict per-page timeout (ms)
     
     # Rate limiting
     delay_between_pages: float = 1.0  # seconds
-    delay_after_click: float = 0.5  # seconds after clicking expandable
+    delay_after_click: float = 0.3   # reduced for efficiency
+    
+    # Per-page expansion limits - CRITICAL for preventing hangs
+    max_clicks_per_page: int = 50  # Stop expansion after 50 clicks per page
     
     # Browser settings
     headless: bool = True
@@ -45,33 +74,32 @@ class DeepCrawlConfig:
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     )
     
-    # Expandable element selectors (CSS selectors for clickable dropdowns)
-    expandable_selectors: List[str] = field(default_factory=lambda: [
-        # Common accordion/dropdown patterns
-        '[aria-expanded="false"]',
-        '.collapsed',
-        '.expandable:not(.expanded)',
-        '.accordion-header:not(.active)',
-        '.tree-node:not(.expanded)',
-        '.dropdown-toggle',
-        'details:not([open]) > summary',
-        '[data-toggle="collapse"]',
-        '.nav-link[data-bs-toggle]',
-        # Oracle docs specific
-        '.toc-item > .toc-link',
-        '.tree-item:not(.is-expanded)',
-        'li[role="treeitem"] > span',
-        '.ohc-sidebar-item',
-        '[class*="expand"]',
-        '[class*="collapse"]',
-    ])
+    # Enable static fallback when JS rendering fails
+    enable_static_fallback: bool = True
+    
+    # GENERALIZED interactive element selectors
+    # Default: None → uses interaction_policy.DEFAULT_INTERACTIVE_SELECTORS
+    # which covers 20+ frameworks (Bootstrap, React, Docusaurus, MkDocs, etc.)
+    interactive_selectors: Optional[List[str]] = None
     
     # Link selectors to find after expansion
     link_selectors: List[str] = field(default_factory=lambda: [
         'a[href]',
+        # Tree / sidebar navigation
         '.toc-link[href]',
         '.nav-link[href]',
         '[role="treeitem"] a',
+        # Docusaurus
+        '.menu__link[href]',
+        # ReadTheDocs / Sphinx
+        '.toctree-l1 a[href]',
+        '.toctree-l2 a[href]',
+        # MkDocs
+        '.md-nav__link[href]',
+        # Confluence
+        '.expand-content a[href]',
+        # GitBook
+        'nav a[href]',
     ])
     
     # Content selectors (main content area)
@@ -81,12 +109,24 @@ class DeepCrawlConfig:
         '.content',
         '.main-content',
         '#content',
+        '[role="main"]',
+        # Documentation platforms
         '.documentation',
         '.doc-content',
-        # Oracle docs specific
-        '.ohc-main-content',
-        '.topic-content',
-        '[role="main"]',
+        '.ohc-main-content',          # Oracle
+        '.topic-content',             # Oracle
+        '.theme-doc-markdown',        # Docusaurus
+        '.markdown-section',          # Docusaurus
+        '.md-content',                # MkDocs Material
+        '.rst-content',               # ReadTheDocs
+        '.document',                  # Sphinx
+        '.wiki-content',              # Confluence
+        '.article-body',              # Zendesk Guide
+        # React UI library wrappers
+        '.MuiContainer-root',         # MUI
+        '.chakra-container',          # Chakra
+        # Enterprise
+        '.slds-template__container',  # Salesforce
     ])
     
     # Selectors to exclude from content
@@ -101,6 +141,10 @@ class DeepCrawlConfig:
         'style',
         'noscript',
     ])
+
+    # Scope-filter params (populated by CrawlerRunConfig converters)
+    deny_patterns: List[str] = field(default_factory=list)
+    strip_all_queries: bool = False
 
 
 @dataclass  
@@ -178,8 +222,12 @@ class DeepDocCrawler:
         self.config = config or DeepCrawlConfig()
         self.url_normalizer = URLNormalizer()
         
+        # Scope filter (initialized per-crawl in .crawl())
+        self._scope_filter: Optional[ScopeFilter] = None
+        
         # State
         self._visited_urls: Set[str] = set()
+        self._queued_urls: Set[str] = set()   # frontier dedup — prevents double-enqueue
         self._pages: List[DeepPageData] = []
         self._errors: List[Dict] = []
         self._hierarchy: Dict = {}
@@ -254,50 +302,41 @@ class DeepDocCrawler:
                 pass
             self._playwright = None
     
-    def _expand_all_elements(self, page: Page) -> int:
+    def _expand_all_elements(self, page: Page) -> tuple:
         """
-        Click on all expandable elements to reveal hidden content.
-        Returns the number of elements expanded.
+        Delegate interactive expansion to the interaction_policy module.
+        
+        The policy engine handles:
+        - Candidate discovery via CSS selectors + text heuristics
+        - Per-click meaningful-delta gating (text / links / ARIA state)
+        - Dedup fingerprinting to avoid re-clicking elements
+        - Budget enforcement (max_clicks_per_page)
+        
+        Returns:
+            Tuple of (meaningful_clicks, hit_limit)
         """
-        expanded_count = 0
-        
-        for selector in self.config.expandable_selectors:
-            try:
-                elements = page.query_selector_all(selector)
-                
-                for element in elements:
-                    try:
-                        # Check if element is visible and clickable
-                        if not element.is_visible():
-                            continue
-                        
-                        # Get element info for logging
-                        tag = element.evaluate("el => el.tagName")
-                        text = element.inner_text()[:50] if element.inner_text() else ""
-                        
-                        # Click to expand
-                        element.click(timeout=2000)
-                        expanded_count += 1
-                        
-                        # Small delay after click
-                        page.wait_for_timeout(int(self.config.delay_after_click * 1000))
-                        
-                        logger.debug(f"Expanded: {tag} - {text}")
-                        
-                    except Exception as e:
-                        # Element might not be clickable or already expanded
-                        continue
-                        
-            except Exception as e:
-                continue
-        
-        self._expandables_clicked += expanded_count
-        return expanded_count
+        result = interaction_policy.expansion_loop(
+            page,
+            max_clicks=self.config.max_clicks_per_page,
+            click_timeout_ms=getattr(self.config, 'click_timeout_ms', 1500),
+            delay_after_click_s=self.config.delay_after_click,
+            meaningful_text_delta=getattr(self.config, 'meaningful_text_delta', 80),
+            meaningful_link_delta=getattr(self.config, 'meaningful_link_delta', 1),
+            selectors=self.config.interactive_selectors,
+        )
+        self._expandables_clicked += result.meaningful_clicks
+        return result.meaningful_clicks, result.hit_limit
     
     def _extract_links_from_page(self, page: Page, base_url: str) -> List[str]:
-        """Extract all internal links from the page after expansion."""
+        """Extract all internal, in-scope links from the page after expansion."""
         links = set()
         base_domain = urlparse(base_url).netloc.lower()
+        total_hrefs = 0
+        rejected_external = 0
+        rejected_normalize = 0
+        rejected_scope = 0
+        rejected_nonhttp = 0
+        rejected_dedup = 0
         
         for selector in self.config.link_selectors:
             try:
@@ -308,27 +347,41 @@ class DeepDocCrawler:
                         href = element.get_attribute('href')
                         if not href:
                             continue
+                        total_hrefs += 1
                         
-                        # Resolve relative URLs
-                        absolute_url = urljoin(page.url, href)
+                        # Resolve relative URLs (ensure directory paths keep trailing /)
+                        absolute_url = urljoin(ensure_joinable_base(page.url), href)
                         
                         # Skip non-http links
                         if not absolute_url.startswith(('http://', 'https://')):
+                            rejected_nonhttp += 1
                             continue
                         
-                        # Skip external links
+                        # Skip external links (fast domain check before full scope filter)
                         url_domain = urlparse(absolute_url).netloc.lower()
                         if url_domain != base_domain:
+                            rejected_external += 1
                             continue
                         
-                        # Skip anchors, javascript, etc
+                        # Strip fragments
                         if '#' in absolute_url:
                             absolute_url = absolute_url.split('#')[0]
                         
                         # Normalize
                         normalized = self.url_normalizer.normalize(absolute_url)
-                        if normalized:
-                            links.add(normalized)
+                        if not normalized:
+                            rejected_normalize += 1
+                            continue
+
+                        # Scope gate — reject outside-subtree links here,
+                        # before they ever reach the BFS queue
+                        if self._scope_filter and not self._scope_filter.accept(normalized):
+                            rejected_scope += 1
+                            continue
+
+                        if normalized in links:
+                            rejected_dedup += 1
+                        links.add(normalized)
                             
                     except Exception:
                         continue
@@ -337,6 +390,16 @@ class DeepDocCrawler:
                 continue
         
         self._links_discovered += len(links)
+        logger.info(
+            f"[LINKS] {page.url[:60]} → "
+            f"hrefs_found={total_hrefs} "
+            f"in_scope={len(links)} "
+            f"external={rejected_external} "
+            f"nonhttp={rejected_nonhttp} "
+            f"bad_normalize={rejected_normalize} "
+            f"scope_rejected={rejected_scope} "
+            f"dedup={rejected_dedup}"
+        )
         return list(links)
     
     def _extract_breadcrumb(self, page: Page) -> List[str]:
@@ -524,6 +587,17 @@ class DeepDocCrawler:
             except Exception:
                 pass
         
+        # Per-page scrape summary
+        heading_count = sum(len(v) for v in content['headings'].values())
+        text_len = len(content['text'])
+        logger.info(
+            f"[SCRAPE] title='{content['title'][:60]}' | "
+            f"text={text_len:,} chars | "
+            f"headings={heading_count} | "
+            f"tables={len(content['tables'])} | "
+            f"code_blocks={len(content['code_blocks'])}"
+        )
+        
         return content
     
     def _crawl_page(
@@ -555,6 +629,12 @@ class DeepDocCrawler:
         if normalized_url in self._visited_urls:
             return None
         
+        # Scope guard (belt-and-suspenders — primary filtering is at link extraction)
+        if self._scope_filter and not self._scope_filter.accept(normalized_url):
+            logger.debug(f"[SCOPE] Rejected at crawl-page gate: {normalized_url}")
+            return None
+        
+        # Mark visited AFTER scope check so scope-rejected URLs aren't permanently eaten
         self._visited_urls.add(normalized_url)
         
         logger.info(f"Deep crawling [{depth}]: {normalized_url}")
@@ -579,23 +659,55 @@ class DeepDocCrawler:
                     })
                     return None
                 
-                # Wait for content
+                # Wait for content - USE domcontentloaded, NOT networkidle
                 page.wait_for_load_state('domcontentloaded')
-                page.wait_for_timeout(2000)  # Extra time for JS
                 
-                # Expand all expandable elements
-                expanded = self._expand_all_elements(page)
-                logger.debug(f"Expanded {expanded} elements on {normalized_url}")
+                # Wait for dynamic content (JS-rendered TOC / sidebars).
+                # Many doc sites (Oracle, etc.) load navigation via RequireJS
+                # after DOMContentLoaded.  We poll for <a href> stabilisation
+                # within the existing per-page timeout budget.
+                try:
+                    page.wait_for_load_state('networkidle', timeout=5000)
+                except PlaywrightTimeout:
+                    pass   # best-effort — don't fail the page on this
                 
-                # Wait after expansion
+                # Brief stabilization wait
+                page.wait_for_timeout(1000)
+                
+                # Skip interactive expansion when the BFS queue already has
+                # plenty of URLs.  The sidebar / TOC is typically identical on
+                # every page, so re-expanding it on every visit is pure waste.
+                queue_size = len(self._queue)
+                if queue_size >= self.config.max_pages:
+                    logger.debug(
+                        f"Skipping expansion — queue already has {queue_size} URLs"
+                    )
+                    expanded, hit_limit = 0, False
+                else:
+                    # Expand expandable elements with STRICT per-page limit
+                    expanded, hit_limit = self._expand_all_elements(page)
+                    if hit_limit:
+                        logger.info(f"Expansion limit reached on {normalized_url}")
+                    else:
+                        logger.debug(f"Expanded {expanded} elements on {normalized_url}")
+                
+                # Brief wait after expansion (only if we expanded something)
                 if expanded > 0:
-                    page.wait_for_timeout(1000)
+                    page.wait_for_timeout(500)
                 
                 # Extract content
                 content = self._extract_content(page)
                 
-                # Extract links
-                links = self._extract_links_from_page(page, base_url)
+                # Extract links — skip heavy extraction when queue is already
+                # larger than max_pages (sidebar links are the same on every
+                # page; re-extracting 22K hrefs per page is pure waste).
+                if len(self._queue) >= self.config.max_pages:
+                    links = []
+                    logger.debug(
+                        f"Skipping link extraction — queue has {len(self._queue)} URLs"
+                    )
+                else:
+                    links = self._extract_links_from_page(page, base_url)
                 
                 # Extract breadcrumb and section path
                 breadcrumb = self._extract_breadcrumb(page)
@@ -617,6 +729,13 @@ class DeepDocCrawler:
                     word_count=len(content['text'].split())
                 )
                 
+                logger.info(
+                    f"[PAGE OK] {normalized_url[:70]} — "
+                    f"{page_data.word_count:,} words, "
+                    f"{len(links)} links, "
+                    f"depth={depth}"
+                )
+                
                 # Progress callback
                 if self._progress_callback:
                     try:
@@ -635,17 +754,159 @@ class DeepDocCrawler:
                 page.close()
                 
         except PlaywrightTimeout:
+            logger.warning(
+                f"[PAGE-FALLBACK] Timeout on {normalized_url} — "
+                f"falling back to static extraction (queue continues)"
+            )
+            if self.config.enable_static_fallback:
+                return self._crawl_page_static(normalized_url, depth, parent_url, section_path, base_url)
             self._errors.append({
                 'url': normalized_url,
-                'error': 'Timeout',
-                'depth': depth
+                'error': 'Timeout (no static fallback)',
+                'depth': depth,
+                'fallback': False,
             })
             return None
         except Exception as e:
+            logger.warning(
+                f"[PAGE-FALLBACK] Deep-mode error on {normalized_url}: {e} — "
+                f"falling back to static extraction (queue continues)"
+            )
+            if self.config.enable_static_fallback:
+                return self._crawl_page_static(normalized_url, depth, parent_url, section_path, base_url)
             self._errors.append({
                 'url': normalized_url,
                 'error': str(e),
-                'depth': depth
+                'depth': depth,
+                'fallback': False,
+            })
+            return None
+    
+    def _crawl_page_static(
+        self,
+        url: str,
+        depth: int,
+        parent_url: str,
+        section_path: List[str],
+        base_url: str
+    ) -> Optional[DeepPageData]:
+        """
+        Static fallback crawler using requests + BeautifulSoup.
+        
+        Invoked **per-page** when Playwright fails (timeout, JS errors, etc.)
+        The crawl queue is NOT affected — only this single URL uses static mode.
+        """
+        logger.info(f"[STATIC-FALLBACK] Extracting [{depth}]: {url}")
+        
+        try:
+            headers = {
+                'User-Agent': self.config.user_agent,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+            }
+            
+            response = requests.get(url, headers=headers, timeout=15)
+            
+            if response.status_code >= 400:
+                self._errors.append({
+                    'url': url,
+                    'error': f"HTTP {response.status_code} (static fallback)",
+                    'depth': depth
+                })
+                return None
+            
+            html = response.text
+            soup = BeautifulSoup(html, _BS_PARSER)
+            
+            # Extract title
+            title = ""
+            title_tag = soup.find('title')
+            if title_tag:
+                title = title_tag.get_text(strip=True)
+            elif soup.find('h1'):
+                title = soup.find('h1').get_text(strip=True)
+            
+            # Extract headings
+            headings = {}
+            for level in range(1, 7):
+                h_tags = soup.find_all(f'h{level}')
+                if h_tags:
+                    headings[f'h{level}'] = [h.get_text(strip=True) for h in h_tags if h.get_text(strip=True)]
+            
+            # Extract text content from main content area
+            main_content = None
+            for selector in ['main', 'article', '.content', '#content', '[role="main"]']:
+                main_content = soup.select_one(selector)
+                if main_content:
+                    break
+            
+            if not main_content:
+                main_content = soup.find('body')
+            
+            text_content = ""
+            if main_content:
+                # Remove script, style, nav, etc.
+                for tag in main_content.find_all(['script', 'style', 'nav', 'footer', 'header', 'aside']):
+                    tag.decompose()
+                text_content = main_content.get_text(separator=' ', strip=True)
+                text_content = re.sub(r'\s+', ' ', text_content)
+            
+            # Extract internal links (scope-filtered)
+            base_domain = urlparse(base_url).netloc.lower()
+            internal_links = []
+            total_hrefs = 0
+            rejected_scope = 0
+            for a_tag in soup.find_all('a', href=True):
+                href = a_tag['href']
+                abs_url = urljoin(ensure_joinable_base(url), href)
+                if abs_url.startswith(('http://', 'https://')):
+                    link_domain = urlparse(abs_url).netloc.lower()
+                    if link_domain == base_domain:
+                        total_hrefs += 1
+                        # Remove fragment
+                        if '#' in abs_url:
+                            abs_url = abs_url.split('#')[0]
+                        normalized = self.url_normalizer.normalize(abs_url)
+                        if not normalized or normalized in internal_links:
+                            continue
+                        # Scope gate
+                        if self._scope_filter and not self._scope_filter.accept(normalized):
+                            rejected_scope += 1
+                            continue
+                        internal_links.append(normalized)
+            
+            self._links_discovered += len(internal_links)
+            logger.info(
+                f"[LINKS-STATIC] {url[:60]} → "
+                f"hrefs_found={total_hrefs} "
+                f"in_scope={len(internal_links)} "
+                f"scope_rejected={rejected_scope}"
+            )
+            
+            page_data = DeepPageData(
+                url=url,
+                title=title,
+                breadcrumb=[],
+                section_path=section_path,
+                headings=headings,
+                text_content=text_content[:50000],  # Limit content size
+                tables=[],
+                code_blocks=[],
+                internal_links=internal_links,
+                parent_url=parent_url,
+                depth=depth,
+                word_count=len(text_content.split())
+            )
+            
+            return page_data
+            
+        except Exception as e:
+            logger.warning(f"[STATIC-FALLBACK] Also failed for {url}: {e}")
+            self._errors.append({
+                'url': url,
+                'error': f"Static fallback also failed: {str(e)}",
+                'depth': depth,
+                'fallback': True,
             })
             return None
     
@@ -659,11 +920,26 @@ class DeepDocCrawler:
         Returns:
             DeepCrawlResult with all crawled pages
         """
-        logger.info(f"Starting deep crawl of {start_url}")
-        logger.info(f"Config: max_pages={self.config.max_pages}, max_depth={self.config.max_depth}")
+        # Initialize scope filter for this crawl
+        self._scope_filter = ScopeFilter(
+            root_url=start_url,
+            deny_patterns=self.config.deny_patterns,
+            strip_all_queries=self.config.strip_all_queries,
+        )
+        self._scope_filter.log_scope()
+        scope_desc = self._scope_filter.scope_description
+        
+        logger.info("=" * 60)
+        logger.info(f"DEEP CRAWL STARTED")
+        logger.info(f"Start URL: {start_url}")
+        logger.info(f"Scope: {scope_desc}")
+        logger.info(f"Limits: max_pages={self.config.max_pages}, max_depth={self.config.max_depth}")
+        logger.info(f"Per-page: timeout={self.config.timeout}ms, max_clicks={self.config.max_clicks_per_page}")
+        logger.info("=" * 60)
         
         # Reset state
         self._visited_urls.clear()
+        self._queued_urls.clear()
         self._pages.clear()
         self._errors.clear()
         self._hierarchy.clear()
@@ -671,6 +947,7 @@ class DeepDocCrawler:
         self._expandables_clicked = 0
         self._links_discovered = 0
         self._start_time = time.time()
+        stop_reason = "completed"
         
         # Initialize browser
         self._init_browser()
@@ -678,13 +955,26 @@ class DeepDocCrawler:
         try:
             # Queue: (url, depth, parent_url, section_path)
             queue = [(start_url, 0, "", [])]
+            self._queue = queue   # expose to _crawl_page for skip-expansion logic
+            self._queued_urls.add(start_url)
             
             while queue and not self._stop_requested:
+                # Check page limit
                 if len(self._pages) >= self.config.max_pages:
-                    logger.info(f"Reached max pages limit: {self.config.max_pages}")
+                    stop_reason = f"MAX_PAGES limit reached ({self.config.max_pages})"
+                    logger.info(f"STOPPING: {stop_reason}")
                     break
                 
                 url, depth, parent_url, section_path = queue.pop(0)
+                
+                # Check depth limit
+                if depth > self.config.max_depth:
+                    logger.debug(f"Skipping {url} - exceeds max depth {self.config.max_depth}")
+                    continue
+                
+                # Log progress
+                elapsed = time.time() - self._start_time
+                logger.info(f"[{len(self._pages)+1}/{self.config.max_pages}] Depth:{depth} | {elapsed:.1f}s | Queue:{len(queue)} | {url[:80]}...")
                 
                 # Crawl page
                 page_data = self._crawl_page(url, depth, parent_url, section_path, start_url)
@@ -692,19 +982,57 @@ class DeepDocCrawler:
                 if page_data:
                     self._pages.append(page_data)
                     
-                    # Add discovered links to queue
+                    # Add discovered links to global frontier
                     if depth < self.config.max_depth:
+                        new_enqueued = 0
+                        rejected_scope = 0
+                        rejected_visited = 0
                         for link in page_data.internal_links:
-                            if link not in self._visited_urls:
-                                queue.append((
-                                    link,
-                                    depth + 1,
-                                    page_data.url,
-                                    page_data.section_path.copy()
-                                ))
+                            # Skip already-visited or already-queued URLs
+                            if link in self._visited_urls:
+                                rejected_visited += 1
+                                continue
+                            if link in self._queued_urls:
+                                continue
+                            # Links are already scope-filtered at extraction time,
+                            # but belt-and-suspenders check here too
+                            if self._scope_filter and not self._scope_filter.accept(link):
+                                rejected_scope += 1
+                                continue
+                            queue.append((
+                                link,
+                                depth + 1,
+                                page_data.url,
+                                page_data.section_path.copy()
+                            ))
+                            self._queued_urls.add(link)
+                            new_enqueued += 1
+                        
+                        # Use info for pages that actually discover links,
+                        # debug for pages where extraction was skipped
+                        log_fn = logger.info if len(page_data.internal_links) > 0 else logger.debug
+                        log_fn(
+                            f"[FRONTIER] Page {page_data.url[:60]} → "
+                            f"discovered={len(page_data.internal_links)} "
+                            f"enqueued={new_enqueued} "
+                            f"already_visited={rejected_visited} "
+                            f"scope_rejected={rejected_scope} "
+                            f"queue_size={len(queue)}"
+                        )
                     
                     # Rate limiting
                     time.sleep(self.config.delay_between_pages)
+                else:
+                    logger.info(
+                        f"[FRONTIER] Page {url[:60]} returned no data "
+                        f"(fail/timeout/dup) — queue_size={len(queue)}"
+                    )
+            
+            # Determine final stop reason
+            if self._stop_requested:
+                stop_reason = "User requested stop"
+            elif not queue:
+                stop_reason = "Queue exhausted (all reachable pages crawled)"
             
         finally:
             self._close_browser()
@@ -718,9 +1046,18 @@ class DeepDocCrawler:
             'links_discovered': self._links_discovered,
             'elapsed_time': round(elapsed, 2),
             'pages_per_second': round(len(self._pages) / elapsed, 2) if elapsed > 0 else 0,
+            'stop_reason': stop_reason,
+            'scope': scope_desc,
         }
         
-        logger.info(f"Deep crawl complete. Stats: {stats}")
+        logger.info("=" * 60)
+        logger.info(f"DEEP CRAWL COMPLETE")
+        logger.info(f"Pages crawled: {stats['pages_crawled']}")
+        logger.info(f"Pages failed: {stats['pages_failed']}")
+        logger.info(f"Expandables clicked: {stats['expandables_clicked']}")
+        logger.info(f"Elapsed time: {stats['elapsed_time']}s")
+        logger.info(f"Stop reason: {stop_reason}")
+        logger.info("=" * 60)
         
         return DeepCrawlResult(
             pages=self._pages.copy(),
@@ -787,6 +1124,126 @@ class DeepDocCrawler:
             writer.writerows(rows)
         
         return str(output_path.absolute())
+    
+    def export_docx(self, result: DeepCrawlResult, filepath: str) -> str:
+        """
+        Export crawl results to a professionally formatted Word document.
+        
+        Each page includes:
+        - Page Title
+        - Page URL  
+        - Breadcrumb/Section Path
+        - Headings (H1-H6)
+        - Visible Text Content
+        
+        Args:
+            result: DeepCrawlResult to export
+            filepath: Output file path
+            
+        Returns:
+            Absolute path to the created file
+        """
+        from docx import Document
+        from docx.shared import Inches, Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        
+        output_path = Path(filepath)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        doc = Document()
+        
+        # Configure default style
+        style = doc.styles['Normal']
+        style.font.name = 'Calibri'
+        style.font.size = Pt(10)
+        
+        # Cover page / Summary
+        title = doc.add_heading('Web Crawl Report', level=0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Summary stats
+        summary_items = [
+            f"Crawl Scope: {result.stats.get('scope', 'N/A')}",
+            f"Total Pages Crawled: {result.stats.get('pages_crawled', 0)}",
+            f"Pages Failed: {result.stats.get('pages_failed', 0)}",
+            f"Expandables Clicked: {result.stats.get('expandables_clicked', 0)}",
+            f"Elapsed Time: {result.stats.get('elapsed_time', 0)}s",
+            f"Speed: {result.stats.get('pages_per_second', 0):.2f} pages/sec",
+            f"Stop Reason: {result.stats.get('stop_reason', 'N/A')}",
+        ]
+        
+        for item in summary_items:
+            p = doc.add_paragraph(item)
+            p.paragraph_format.space_after = Pt(2)
+        
+        doc.add_page_break()
+        
+        # Per-page content
+        for idx, page in enumerate(result.pages):
+            # Page title
+            heading_text = page.title if page.title else page.url
+            doc.add_heading(heading_text[:100], level=1)
+            
+            # URL
+            url_para = doc.add_paragraph()
+            url_run = url_para.add_run(page.url)
+            url_run.font.color.rgb = RGBColor(0x25, 0x63, 0xEB)
+            url_run.font.size = Pt(9)
+            url_para.paragraph_format.space_after = Pt(4)
+            
+            # Section path / breadcrumb
+            if page.section_path:
+                path_para = doc.add_paragraph()
+                path_label = path_para.add_run('Section: ')
+                path_label.bold = True
+                path_label.font.size = Pt(9)
+                path_value = path_para.add_run(' > '.join(page.section_path))
+                path_value.font.size = Pt(9)
+                path_value.font.color.rgb = RGBColor(0x64, 0x74, 0x8B)
+            
+            if page.breadcrumb:
+                bc_para = doc.add_paragraph()
+                bc_label = bc_para.add_run('Breadcrumb: ')
+                bc_label.bold = True
+                bc_label.font.size = Pt(9)
+                bc_value = bc_para.add_run(' > '.join(page.breadcrumb))
+                bc_value.font.size = Pt(9)
+            
+            # Headings (H1-H6)
+            if page.headings:
+                doc.add_heading('Headings', level=2)
+                for level_tag, heading_list in page.headings.items():
+                    for h_text in heading_list[:10]:  # Limit headings per level
+                        p = doc.add_paragraph(style='List Bullet')
+                        tag_run = p.add_run(f'[{level_tag.upper()}] ')
+                        tag_run.bold = True
+                        tag_run.font.size = Pt(9)
+                        text_run = p.add_run(h_text[:200])
+                        text_run.font.size = Pt(9)
+            
+            # Main text content
+            if page.text_content:
+                doc.add_heading('Content', level=2)
+                content = page.text_content
+                # Limit to 15000 chars per page
+                if len(content) > 15000:
+                    content = content[:15000] + '\n\n[... content truncated ...]'
+                
+                # Write in chunks for readability
+                chunks = [content[i:i+2000] for i in range(0, len(content), 2000)]
+                for chunk in chunks:
+                    p = doc.add_paragraph(chunk)
+                    p.paragraph_format.space_after = Pt(4)
+                    for run in p.runs:
+                        run.font.size = Pt(9)
+            
+            # Page break between pages (except last)
+            if idx < len(result.pages) - 1:
+                doc.add_page_break()
+        
+        doc.save(str(output_path))
+        logger.info(f"Exported DOCX to {output_path.absolute()}")
+        return str(output_path.absolute())
 
 
 # Convenience function
@@ -805,3 +1262,211 @@ def deep_crawl_docs(url: str, max_pages: int = 100, max_depth: int = 5) -> DeepC
     config = DeepCrawlConfig(max_pages=max_pages, max_depth=max_depth)
     crawler = DeepDocCrawler(config)
     return crawler.crawl(url)
+
+
+# =============================================================================
+# CLI INTERFACE
+# =============================================================================
+def main():
+    """
+    CLI entry point for the deep web crawler.
+    
+    Usage:
+        python -m crawler.deep_crawler <url> [options]
+        
+    Examples:
+        python -m crawler.deep_crawler https://docs.example.com --max_pages 100
+        python -m crawler.deep_crawler https://example.com/docs --max_depth 3 --output_json results.json
+        python -m crawler.deep_crawler https://site.com --no_js --output_csv data.csv
+    """
+    import argparse
+    import sys
+    
+    # Configure logging for CLI
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s | %(levelname)-7s | %(message)s',
+        datefmt='%H:%M:%S'
+    )
+    
+    parser = argparse.ArgumentParser(
+        description='Advanced Web Crawler - CLI-first production crawler',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+  python -m crawler.deep_crawler https://docs.example.com
+  python -m crawler.deep_crawler https://example.com/docs --max_pages 100 --max_depth 3
+  python -m crawler.deep_crawler https://site.com --output_json results.json --output_csv data.csv
+  python -m crawler.deep_crawler https://site.com --no_js --rate 0.5 --output_docx report.docx
+
+Scope Rules:
+  - https://example.com        -> Crawls entire domain
+  - https://example.com/docs   -> Crawls only /docs/** subtree
+
+Safety Limits (enforced strictly):
+  - Per-page timeout: 20 seconds (configurable)
+  - Per-page max clicks: 50 (to prevent infinite expansion)
+  - Default MAX_PAGES: 150
+  - Default MAX_DEPTH: 5
+        '''
+    )
+    
+    # Required
+    parser.add_argument('url', help='Starting URL to crawl')
+    
+    # Crawl limits
+    parser.add_argument('--max_depth', type=int, default=5,
+                        help='Maximum crawl depth (default: 5)')
+    parser.add_argument('--max_pages', type=int, default=150,
+                        help='Maximum pages to crawl (default: 150)')
+    parser.add_argument('--timeout', type=int, default=20,
+                        help='Per-page timeout in seconds (default: 20)')
+    
+    # Rate limiting
+    parser.add_argument('--rate', type=float, default=1.0,
+                        help='Delay between page requests in seconds (default: 1.0)')
+    
+    # JS handling
+    parser.add_argument('--no_js', action='store_true',
+                        help='Disable JavaScript rendering (static HTML only)')
+    parser.add_argument('--max_clicks', type=int, default=50,
+                        help='Max expandable clicks per page (default: 50)')
+    
+    # Output files
+    parser.add_argument('--output_json', type=str, default=None,
+                        help='Output JSON file path')
+    parser.add_argument('--output_csv', type=str, default=None,
+                        help='Output CSV file path')
+    parser.add_argument('--output_docx', type=str, default=None,
+                        help='Output DOCX file path')
+    
+    # Other options
+    parser.add_argument('--headless', type=bool, default=True,
+                        help='Run browser in headless mode (default: True)')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Enable verbose/debug logging')
+    
+    args = parser.parse_args()
+    
+    # Set debug logging if verbose
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+    
+    # Validate URL
+    if not args.url.startswith(('http://', 'https://')):
+        logger.error("URL must start with http:// or https://")
+        sys.exit(1)
+    
+    # Build configuration
+    config = DeepCrawlConfig(
+        max_pages=args.max_pages,
+        max_depth=args.max_depth,
+        timeout=args.timeout * 1000,  # Convert to milliseconds
+        delay_between_pages=args.rate,
+        max_clicks_per_page=args.max_clicks,
+        headless=args.headless,
+        enable_static_fallback=True,
+    )
+    
+    # If --no_js, we'll use the static-only approach
+    use_static_only = args.no_js
+    
+    logger.info("=" * 60)
+    logger.info("ADVANCED WEB CRAWLER - CLI MODE")
+    logger.info("=" * 60)
+    logger.info(f"URL: {args.url}")
+    logger.info(f"Max Pages: {args.max_pages}")
+    logger.info(f"Max Depth: {args.max_depth}")
+    logger.info(f"Timeout: {args.timeout}s per page")
+    logger.info(f"Rate Limit: {args.rate}s between requests")
+    logger.info(f"JS Rendering: {'Disabled' if use_static_only else 'Enabled'}")
+    logger.info(f"Max Clicks/Page: {args.max_clicks}")
+    logger.info("=" * 60)
+    
+    try:
+        if use_static_only:
+            # Use the regular WebCrawler with JS disabled
+            from .crawler import WebCrawler, CrawlConfig
+            
+            crawl_config = CrawlConfig(
+                max_depth=args.max_depth,
+                max_pages=args.max_pages,
+                timeout=args.timeout,
+                requests_per_second=1.0 / args.rate if args.rate > 0 else 1.0,
+                enable_js_rendering=False,
+            )
+            
+            crawler = WebCrawler(crawl_config)
+            
+            def progress_callback(pages, url, stats):
+                logger.info(f"[{pages}/{args.max_pages}] {url[:70]}...")
+            
+            crawler.set_progress_callback(progress_callback)
+            result = crawler.crawl(args.url)
+            
+            # Export
+            if args.output_json:
+                crawler.export_json(result, args.output_json)
+                logger.info(f"JSON exported to: {args.output_json}")
+            
+            if args.output_csv:
+                crawler.export_csv(result, args.output_csv)
+                logger.info(f"CSV exported to: {args.output_csv}")
+            
+            if args.output_docx:
+                crawler.export_docx(result, args.output_docx)
+                logger.info(f"DOCX exported to: {args.output_docx}")
+            
+            # Summary
+            logger.info("=" * 60)
+            logger.info("CRAWL COMPLETE")
+            logger.info(f"Pages crawled: {result.stats.get('pages_crawled', 0)}")
+            logger.info(f"Pages failed: {result.stats.get('pages_failed', 0)}")
+            logger.info(f"Elapsed time: {result.stats.get('elapsed_time', 0)}s")
+            logger.info("=" * 60)
+            
+        else:
+            # Use DeepDocCrawler for JS-rendered sites
+            crawler = DeepDocCrawler(config)
+            
+            def progress_callback(pages, url, stats):
+                pass  # Already logged in crawl method
+            
+            crawler.set_progress_callback(progress_callback)
+            result = crawler.crawl(args.url)
+            
+            # Export
+            if args.output_json:
+                crawler.export_json(result, args.output_json)
+                logger.info(f"JSON exported to: {args.output_json}")
+            
+            if args.output_csv:
+                crawler.export_csv(result, args.output_csv)
+                logger.info(f"CSV exported to: {args.output_csv}")
+            
+            if args.output_docx:
+                crawler.export_docx(result, args.output_docx)
+                logger.info(f"DOCX exported to: {args.output_docx}")
+        
+        # Default export if none specified
+        if not args.output_json and not args.output_csv and not args.output_docx:
+            default_json = 'crawl_output.json'
+            if use_static_only:
+                crawler.export_json(result, default_json)
+            else:
+                crawler.export_json(result, default_json)
+            logger.info(f"No output specified, exported to: {default_json}")
+        
+    except KeyboardInterrupt:
+        logger.info("\nCrawl interrupted by user (Ctrl+C)")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Crawl failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "total_pages": 1,
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "pages_failed": 0,
+      "pages_skipped": 0,
+      "total_processed": 1,
+      "elapsed_time": 7.43,
+      "pages_per_second": 0.13
+    },
+    "config": {
+      "max_depth": 3,
+      "max_pages": 100,
+      "timeout": 30,
+      "requests_per_second": 1.0,
+      "respect_robots": true,
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "max_retries": 3,
+      "enable_js_rendering": true,
+      "auto_detect_js": true,
+      "max_workers": 1
+    },
+    "errors_count": 0
+  },
+  "pages": [
+    {
+      "url": "https://example.com/",
+      "title": "Example Domain",
+      "meta_description": "",
+      "headings": {
+        "h1": [
+          "Example Domain"
+        ]
+      },
+      "text_content": "Example Domain This domain is for use in documentation examples without needing permission. Avoid use in operations. Learn more",
+      "internal_links": [],
+      "external_links": [
+        "https://iana.org/domains/example"
+      ],
+      "images": [],
+      "status_code": 200,
+      "content_type": "text/html",
+      "word_count": 19,
+      "crawl_depth": 0,
+      "error": ""
+    }
+  ],
+  "errors": []
+}

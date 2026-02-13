@@ -21,6 +21,7 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 
 from .robots import RobotsHandler
 from .scraper import PageScraper, PageData, detect_js_required
+from .scope_filter import ScopeFilter
 from .utils import (
     URLNormalizer, RateLimiter, RetryHandler,
     ProgressTracker, is_valid_url, extract_domain
@@ -68,6 +69,10 @@ class CrawlConfig:
     
     # Output
     output_dir: str = "./output"
+
+    # Scope-filter params (populated by CrawlerRunConfig converters)
+    deny_patterns: List[str] = field(default_factory=list)
+    strip_all_queries: bool = False
     
     def to_dict(self) -> dict:
         """Convert config to dictionary."""
@@ -140,8 +145,12 @@ class WebCrawler:
         # Thread safety
         self._lock = threading.Lock()
         
+        # Scope filter (initialized per-crawl in .crawl())
+        self._scope_filter: Optional[ScopeFilter] = None
+        
         # Crawl state
         self._visited_urls: Set[str] = set()
+        self._queued_urls: Set[str] = set()   # frontier dedup — prevents double-enqueue
         self._failed_urls: Set[str] = set()
         self._pages: List[PageData] = []
         self._errors: List[Dict] = []
@@ -391,7 +400,6 @@ class WebCrawler:
         with self._lock:
             if normalized_url in self._visited_urls:
                 return None
-            self._visited_urls.add(normalized_url)
         
         # Check robots.txt
         if not self.robots_handler.can_fetch(normalized_url):
@@ -399,11 +407,15 @@ class WebCrawler:
             self.progress.increment_skipped()
             return None
         
-        # Check if URL is within crawling scope (domain + path boundary)
-        if not self.url_normalizer.is_within_scope(normalized_url, base_url):
-            logger.debug(f"Out of scope: {normalized_url}")
+        # Scope check — belt-and-suspenders guard (primary filtering is at enqueue time)
+        if self._scope_filter and not self._scope_filter.accept(normalized_url):
+            logger.debug(f"[SCOPE] Rejected at process-url gate: {normalized_url}")
             self.progress.increment_skipped()
             return None
+        
+        # Mark visited AFTER scope + robots checks so rejected URLs aren't permanently eaten
+        with self._lock:
+            self._visited_urls.add(normalized_url)
         
         logger.info(f"Crawling [{depth}]: {normalized_url}")
         
@@ -482,8 +494,20 @@ class WebCrawler:
         # Normalize start URL
         start_url = self.url_normalizer.normalize(start_url) or start_url
         
+        # Initialize scope filter for this crawl
+        self._scope_filter = ScopeFilter(
+            root_url=start_url,
+            deny_patterns=self.config.deny_patterns,
+            strip_all_queries=self.config.strip_all_queries,
+        )
+        self._scope_filter.log_scope()
+        
         # Get and log scope information
-        scope_info = self.url_normalizer.get_scope_info(start_url)
+        scope_info = {
+            'scope_description': self._scope_filter.scope_description,
+            'base_domain': self._scope_filter._root_canon.host if self._scope_filter._root_canon else '',
+            'base_path': self._scope_filter._scope_path,
+        }
         
         logger.info(f"Starting crawl of {start_url} with {strategy.upper()} strategy")
         logger.info(f"Crawl scope: {scope_info['scope_description']}")
@@ -491,6 +515,7 @@ class WebCrawler:
         
         # Reset state
         self._visited_urls.clear()
+        self._queued_urls.clear()
         self._failed_urls.clear()
         self._pages.clear()
         self._errors.clear()
@@ -528,6 +553,7 @@ class WebCrawler:
         """Breadth-first crawl implementation."""
         # Queue: (url, depth)
         queue = deque([(start_url, 0)])
+        self._queued_urls.add(start_url)
         
         while queue and not self._stop_requested:
             # Check page limit
@@ -541,23 +567,49 @@ class WebCrawler:
             if depth > self.config.max_depth:
                 continue
             
+            logger.info(f"[BFS] Depth:{depth} | Queue:{len(queue)} | {url[:80]}")
+            
             # Process URL
             page_data = self._process_url(url, depth, start_url)
             
             if page_data:
                 self._pages.append(page_data)
                 
-                # Add internal links to queue
+                # Add internal links to queue — scope-filtered at enqueue time
                 if depth < self.config.max_depth:
+                    new_enqueued = 0
+                    rejected_scope = 0
                     for link in page_data.internal_links:
                         normalized = self.url_normalizer.normalize(link, start_url)
-                        if normalized and normalized not in self._visited_urls:
-                            queue.append((normalized, depth + 1))
+                        if not normalized:
+                            continue
+                        if normalized in self._visited_urls or normalized in self._queued_urls:
+                            continue
+                        # Scope gate — reject before it ever enters the queue
+                        if self._scope_filter and not self._scope_filter.accept(normalized):
+                            rejected_scope += 1
+                            continue
+                        queue.append((normalized, depth + 1))
+                        self._queued_urls.add(normalized)
+                        new_enqueued += 1
+                    
+                    logger.info(
+                        f"[FRONTIER] {url[:60]} → "
+                        f"links={len(page_data.internal_links)} "
+                        f"enqueued={new_enqueued} "
+                        f"scope_rejected={rejected_scope} "
+                        f"queue_size={len(queue)}"
+                    )
+            else:
+                logger.info(
+                    f"[FRONTIER] {url[:60]} returned no data — queue_size={len(queue)}"
+                )
     
     def _crawl_dfs(self, start_url: str) -> None:
         """Depth-first crawl implementation."""
         # Stack: (url, depth)
         stack = [(start_url, 0)]
+        self._queued_urls.add(start_url)
         
         while stack and not self._stop_requested:
             # Check page limit
@@ -577,12 +629,18 @@ class WebCrawler:
             if page_data:
                 self._pages.append(page_data)
                 
-                # Add internal links to stack
+                # Add internal links to stack — scope-filtered at enqueue time
                 if depth < self.config.max_depth:
                     for link in reversed(page_data.internal_links):
                         normalized = self.url_normalizer.normalize(link, start_url)
-                        if normalized and normalized not in self._visited_urls:
-                            stack.append((normalized, depth + 1))
+                        if not normalized:
+                            continue
+                        if normalized in self._visited_urls or normalized in self._queued_urls:
+                            continue
+                        if self._scope_filter and not self._scope_filter.accept(normalized):
+                            continue
+                        stack.append((normalized, depth + 1))
+                        self._queued_urls.add(normalized)
     
     def export_json(self, result: CrawlResult, filepath: str) -> str:
         """

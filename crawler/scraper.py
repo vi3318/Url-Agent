@@ -9,9 +9,18 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field, asdict
 from bs4 import BeautifulSoup, Comment, NavigableString
 from urllib.parse import urljoin
+from .utils import ensure_joinable_base
 
 logger = logging.getLogger(__name__)
 
+# Choose the best available HTML parser — prefer lxml for speed,
+# fall back to the stdlib html.parser so the crawler never crashes.
+try:
+    import lxml  # noqa: F401
+    _BS_PARSER = "lxml"
+except ImportError:
+    _BS_PARSER = "html.parser"
+    logger.info("lxml not installed — using html.parser (slower but functional)")
 
 @dataclass
 class PageData:
@@ -173,7 +182,7 @@ class PageScraper:
         )
         
         try:
-            soup = BeautifulSoup(html, 'lxml')
+            soup = BeautifulSoup(html, _BS_PARSER)
             
             # Remove unwanted elements
             self._remove_unwanted_elements(soup)
@@ -199,9 +208,11 @@ class PageScraper:
             if self.extract_images:
                 page_data.images = self._extract_images(soup, url)
             
-            logger.debug(
-                f"Scraped {url}: title='{page_data.title[:50]}...', "
-                f"words={page_data.word_count}, links={len(internal)}"
+            logger.info(
+                f"[SCRAPE] {url[:70]} — title='{page_data.title[:50]}', "
+                f"words={page_data.word_count:,}, "
+                f"headings={sum(len(v) for v in page_data.headings.values())}, "
+                f"links={len(internal)}"
             )
             
         except Exception as e:
@@ -424,8 +435,8 @@ class PageScraper:
             if not href or href.startswith(('javascript:', 'mailto:', 'tel:', '#')):
                 continue
             
-            # Resolve relative URLs
-            absolute_url = urljoin(current_url, href)
+            # Resolve relative URLs (ensure directory paths keep trailing /)
+            absolute_url = urljoin(ensure_joinable_base(current_url), href)
             
             # Remove fragments for deduplication
             if '#' in absolute_url:
@@ -478,8 +489,8 @@ class PageScraper:
             if not src:
                 continue
             
-            # Resolve relative URLs
-            absolute_src = urljoin(current_url, src)
+            # Resolve relative URLs (ensure directory paths keep trailing /)
+            absolute_src = urljoin(ensure_joinable_base(current_url), src)
             
             images.append({
                 'src': absolute_src,
@@ -515,7 +526,7 @@ def detect_js_required(html: str) -> bool:
     Returns:
         True if JavaScript rendering is likely needed
     """
-    soup = BeautifulSoup(html, 'lxml')
+    soup = BeautifulSoup(html, _BS_PARSER)
     
     # Check if body is nearly empty (very strong indicator)
     body = soup.find('body')
