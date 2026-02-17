@@ -327,6 +327,84 @@ class DeepDocCrawler:
         self._expandables_clicked += result.meaningful_clicks
         return result.meaningful_clicks, result.hit_limit
     
+    def _detect_page_complexity(self, page: Page) -> str:
+        """Auto-detect whether a page needs JS expansion or is simple HTML.
+
+        Runs quickly inside Playwright after page load.  Checks two things:
+          1. Are there interactive expandable elements on the page?
+          2. Did JS rendering actually produce meaningful content?
+
+        Returns:
+            'html'   — static page, skip expansion (fast path)
+            'js'     — JS-heavy page, do full expansion
+        """
+        try:
+            # Count expandable / interactive elements on the page
+            expandable_count = page.evaluate("""
+                () => {
+                    const selectors = [
+                        '[aria-expanded="false"]',
+                        'details:not([open]) > summary',
+                        '.collapsed',
+                        '.accordion-button.collapsed',
+                        '[data-toggle]',
+                        '[data-bs-toggle]',
+                        '[class*="expand"]:not([class*="expanded"])',
+                        '[class*="collapse"]:not([class*="collapsed"])',
+                        '[role="tab"]:not([aria-selected="true"])',
+                        '.load-more', '.show-more', '.view-more',
+                        '.tree-node:not(.expanded)',
+                        '.toc-item > .toc-link',
+                        '.ohc-sidebar-item',
+                    ];
+                    let count = 0;
+                    for (const sel of selectors) {
+                        try { count += document.querySelectorAll(sel).length; }
+                        catch(e) {}
+                    }
+                    return count;
+                }
+            """)
+
+            # Count visible <a> links already on the page
+            link_count = page.evaluate("""
+                () => document.querySelectorAll('a[href]').length
+            """)
+
+            # Heuristic decision:
+            # - If there are expandable elements -> JS mode (needs expansion)
+            # - If very few links found -> JS mode (content may be loading)
+            # - Otherwise -> HTML mode (fast path)
+            if expandable_count >= 3:
+                logger.info(
+                    f"[AUTO-DETECT] JS mode — {expandable_count} expandable "
+                    f"elements found (links={link_count})"
+                )
+                return 'js'
+
+            if link_count < 5:
+                # Very few links might mean JS hasn't loaded navigation yet
+                # but also might be a legitimate leaf page -- check body text
+                body_text_len = page.evaluate("""
+                    () => (document.body?.innerText || '').trim().length
+                """)
+                if body_text_len < 200:
+                    logger.info(
+                        f"[AUTO-DETECT] JS mode — sparse page "
+                        f"(links={link_count}, text={body_text_len} chars)"
+                    )
+                    return 'js'
+
+            logger.info(
+                f"[AUTO-DETECT] HTML mode — static page "
+                f"(links={link_count}, expandables={expandable_count})"
+            )
+            return 'html'
+
+        except Exception as e:
+            logger.debug(f"[AUTO-DETECT] Error during detection: {e} — defaulting to js")
+            return 'js'
+
     def _extract_links_from_page(self, page: Page, base_url: str) -> List[str]:
         """Extract all internal, in-scope links from the page after expansion."""
         links = set()
@@ -674,6 +752,11 @@ class DeepDocCrawler:
                 # Brief stabilization wait
                 page.wait_for_timeout(1000)
                 
+                # ── Auto-detect page complexity ─────────────────────
+                # Determine if this page needs JS expansion or is simple HTML.
+                # This replaces the old manual standard/deep mode choice.
+                page_type = self._detect_page_complexity(page)
+                
                 # Skip interactive expansion when the BFS queue already has
                 # plenty of URLs.  The sidebar / TOC is typically identical on
                 # every page, so re-expanding it on every visit is pure waste.
@@ -683,8 +766,13 @@ class DeepDocCrawler:
                         f"Skipping expansion — queue already has {queue_size} URLs"
                     )
                     expanded, hit_limit = 0, False
+                elif page_type == 'html':
+                    # HTML page — skip expansion entirely (fast path)
+                    logger.info(f"[FAST] Skipping expansion for HTML page: {normalized_url[:60]}")
+                    expanded, hit_limit = 0, False
                 else:
-                    # Expand expandable elements with STRICT per-page limit
+                    # JS-heavy page — do full expansion
+                    logger.info(f"[DEEP] Running expansion for JS page: {normalized_url[:60]}")
                     expanded, hit_limit = self._expand_all_elements(page)
                     if hit_limit:
                         logger.info(f"Expansion limit reached on {normalized_url}")

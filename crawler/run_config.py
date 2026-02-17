@@ -28,7 +28,7 @@ _DEFAULTS = {
     "timeout_seconds": 20,           # per-page timeout (seconds for CLI/standard, converted to ms for deep)
     "max_interactions_per_page": 50,  # per-page click budget
     "rate_delay": 1.0,               # seconds between pages
-    "mode": "standard",              # "standard" | "deep"
+    "mode": "auto",                  # "auto" (unified Playwright with smart detection)
     "headless": True,
     "enable_js": True,
     "enable_static_fallback": True,
@@ -66,7 +66,7 @@ class CrawlerRunConfig:
     rate_delay: float = _DEFAULTS["rate_delay"]
 
     # ---- Mode ----
-    mode: str = _DEFAULTS["mode"]           # "standard" | "deep"
+    mode: str = _DEFAULTS["mode"]           # "auto" (unified Playwright)
     headless: bool = _DEFAULTS["headless"]
     enable_js: bool = _DEFAULTS["enable_js"]
     enable_static_fallback: bool = _DEFAULTS["enable_static_fallback"]
@@ -95,8 +95,9 @@ class CrawlerRunConfig:
     @classmethod
     def from_cli_args(cls, args) -> "CrawlerRunConfig":
         """Build config from an argparse Namespace (``__main__.py``)."""
-        mode = "deep" if getattr(args, "deep", False) else "standard"
-        enable_js = not getattr(args, "no_js", False)
+        # Unified mode — always use Playwright with auto-detection
+        mode = "auto"
+        enable_js = True
 
         return cls(
             max_depth=getattr(args, "depth", _DEFAULTS["max_depth"]),
@@ -160,7 +161,7 @@ class CrawlerRunConfig:
         logger.info("CRAWL RUN CONFIG")
         logger.info("=" * 60)
         logger.info(f"  URL:              {url}")
-        logger.info(f"  Mode:             {self.mode}")
+        logger.info(f"  Mode:             {self.mode} (Playwright + auto-detect)")
         logger.info(f"  Max Depth:        {self.max_depth}")
         logger.info(f"  Max Pages:        {self.max_pages}")
         logger.info(f"  Timeout:          {self.timeout_seconds}s per page")

@@ -2,9 +2,9 @@
 """
 Interactive CLI for the Web Crawler
 ====================================
-Supports two modes:
-- Standard Mode: Static scraping with optional JS fallback (faster)
-- Deep Mode: Full JS rendering with controlled interaction expansion
+Unified mode: Playwright-based crawling with automatic JS/HTML detection.
+The system auto-detects whether each page needs JS expansion or is simple HTML,
+eliminating the need for users to choose between standard and deep mode.
 
 All configuration flows through ``CrawlerRunConfig`` — the single source of
 truth for defaults, CLI overrides, and interactive prompts.
@@ -90,13 +90,6 @@ def run_interactive_cli():
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
 
-    mode_choice = get_choice(
-        "Select Crawl Mode:",
-        ["Standard Mode (Static scraping, faster)",
-         "Deep Mode (JS rendering with interaction expansion)"],
-        default=1,
-    )
-
     format_choice = get_choice(
         "Select Output Format:",
         ["JSON only", "CSV only", "DOCX only", "All formats (JSON + CSV + DOCX)"],
@@ -115,7 +108,7 @@ def run_interactive_cli():
         max_depth=max_depth,
         max_pages=max_pages,
         timeout_seconds=timeout,
-        mode="deep" if mode_choice == 2 else "standard",
+        mode="auto",
         output_json=f"{base_name}.json"  if format_choice in [1, 4] else None,
         output_csv=f"{base_name}.csv"   if format_choice in [2, 4] else None,
         output_docx=f"{base_name}.docx" if format_choice in [3, 4] else None,
@@ -137,19 +130,15 @@ def run_interactive_cli():
 # ---------------------------------------------------------------------------
 
 def _run_crawl(url: str, cfg: CrawlerRunConfig):
-    """Execute crawl using the supplied unified config."""
+    """Execute crawl using unified Playwright mode with auto-detection."""
     start_time = time.time()
-
-    if cfg.mode == "deep":
-        _run_deep(url, cfg)
-    else:
-        _run_standard(url, cfg)
-
+    _run_unified(url, cfg)
     elapsed = time.time() - start_time
     # elapsed already printed inside helpers via print_summary
 
 
-def _run_deep(url: str, cfg: CrawlerRunConfig):
+def _run_unified(url: str, cfg: CrawlerRunConfig):
+    """Unified crawl: Playwright + auto-detect JS/HTML per page."""
     from .deep_crawler import DeepDocCrawler
     deep_cfg = cfg.to_deep_config()
     crawler = DeepDocCrawler(deep_cfg)
@@ -157,7 +146,7 @@ def _run_deep(url: str, cfg: CrawlerRunConfig):
     def progress_cb(pages_crawled, current_url, stats):
         meaningful = stats.get('expandables_clicked', 0)
         print(f"[Page {pages_crawled}/{cfg.max_pages}] {current_url[:70]}...")
-        print(f"  Mode: Deep | Meaningful interactions: {meaningful}/{cfg.max_interactions_per_page}")
+        print(f"  Mode: Auto | Interactions: {meaningful}")
 
     crawler.set_progress_callback(progress_cb)
 
@@ -173,31 +162,6 @@ def _run_deep(url: str, cfg: CrawlerRunConfig):
             _export(crawler, result, cfg)
         except Exception as exc:
             logger.error(f"Export failed: {exc}", exc_info=True)
-    print_summary(result.stats, elapsed)
-
-
-def _run_standard(url: str, cfg: CrawlerRunConfig):
-    from .crawler import WebCrawler
-    std_cfg = cfg.to_standard_config()
-
-    def progress_cb(pages_crawled, current_url, stats):
-        print(f"[Page {pages_crawled}/{cfg.max_pages}] {current_url[:70]}...")
-        print(f"  Mode: Standard")
-
-    start = time.time()
-    with WebCrawler(std_cfg) as crawler:
-        crawler.set_progress_callback(progress_cb)
-        result = crawler.crawl(url)
-        if not result.pages:
-            logger.warning("No pages were crawled — skipping export")
-        else:
-            logger.info(f"Crawl returned {len(result.pages)} pages — exporting...")
-            try:
-                _export(crawler, result, cfg)
-            except Exception as exc:
-                logger.error(f"Export failed: {exc}", exc_info=True)
-
-    elapsed = time.time() - start
     print_summary(result.stats, elapsed)
 
 
@@ -244,19 +208,17 @@ def print_summary(stats: dict, elapsed: float):
 def run_cli_with_args():
     """Parse argv, build CrawlerRunConfig, run."""
     parser = argparse.ArgumentParser(
-        description='Web Crawler - Standard and Deep modes',
+        description='Web Crawler - Unified Playwright mode with auto JS/HTML detection',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   python -m crawler                              # Interactive mode
-  python -m crawler https://example.com          # Standard mode with defaults
-  python -m crawler https://example.com --deep   # Deep mode with JS interactions
+  python -m crawler https://example.com          # Auto-detect mode with defaults
   python -m crawler https://example.com --depth 3 --pages 50 --output-json out.json
         """
     )
 
     parser.add_argument('url', nargs='?', help='URL to crawl (omit for interactive mode)')
-    parser.add_argument('--deep', action='store_true', help='Use deep mode with JS interaction expansion')
     parser.add_argument('--depth', type=int, default=5, help='Maximum crawl depth (default: 5)')
     parser.add_argument('--pages', type=int, default=150, help='Maximum pages to crawl (default: 150)')
     parser.add_argument('--timeout', type=int, default=20, help='Timeout per page in seconds (default: 20)')
@@ -265,7 +227,6 @@ Examples:
     parser.add_argument('--output-json', type=str, help='JSON output file path')
     parser.add_argument('--output-csv', type=str, help='CSV output file path')
     parser.add_argument('--output-docx', type=str, help='DOCX output file path')
-    parser.add_argument('--no-js', action='store_true', help='Disable JavaScript rendering (standard mode only)')
     parser.add_argument(
         '--deny-pattern', type=str, action='append', default=[],
         help='Regex deny-pattern for URLs (repeatable). E.g. --deny-pattern "/pls/topic/" --deny-pattern "printMode"',
