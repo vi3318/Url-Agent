@@ -21,8 +21,12 @@ from .scraper import PageScraper, PageData
 from .robots import RobotsHandler
 from .utils import URLNormalizer, RateLimiter, RetryHandler
 from .deep_crawler import DeepDocCrawler, DeepCrawlConfig, DeepCrawlResult, DeepPageData, deep_crawl_docs
+from .async_crawler import AsyncDocCrawler, AsyncCrawlConfig, AsyncCrawlResult
 from .run_config import CrawlerRunConfig
 from .scope_filter import ScopeFilter, is_within_scope
+from .rag_model import RAGChunk, RAGDocument, RAGCorpus
+from .pipeline import transform_page, transform_batch, PipelineConfig
+from .monitor import PerformanceMonitor, CrawlMetrics
 from . import interaction_policy
 
 __all__ = [
@@ -35,13 +39,27 @@ __all__ = [
     'URLNormalizer',
     'RateLimiter',
     'RetryHandler',
-    # Deep crawler
+    # Deep crawler (legacy sync)
     'DeepDocCrawler',
     'DeepCrawlConfig', 
     'DeepCrawlResult',
     'DeepPageData',
     'deep_crawl_docs',
-    # P0 additions
+    # Async crawler (new)
+    'AsyncDocCrawler',
+    'AsyncCrawlConfig',
+    'AsyncCrawlResult',
+    # RAG pipeline
+    'RAGChunk',
+    'RAGDocument',
+    'RAGCorpus',
+    'transform_page',
+    'transform_batch',
+    'PipelineConfig',
+    # Performance monitoring
+    'PerformanceMonitor',
+    'CrawlMetrics',
+    # Config & utilities
     'CrawlerRunConfig',
     'interaction_policy',
     # Scope filtering

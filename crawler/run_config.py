@@ -99,7 +99,7 @@ class CrawlerRunConfig:
         mode = "auto"
         enable_js = True
 
-        return cls(
+        cfg = cls(
             max_depth=getattr(args, "depth", _DEFAULTS["max_depth"]),
             max_pages=getattr(args, "pages", _DEFAULTS["max_pages"]),
             timeout_seconds=getattr(args, "timeout", _DEFAULTS["timeout_seconds"]),
@@ -113,6 +113,9 @@ class CrawlerRunConfig:
             deny_patterns=getattr(args, "deny_pattern", []) or [],
             strip_all_queries=getattr(args, "strip_query", False),
         )
+        # Store extra async-specific fields
+        cfg._workers = getattr(args, "workers", 6)
+        return cfg
 
     # -----------------------------------------------------------------------
     # Converters to mode-specific config objects
@@ -126,6 +129,29 @@ class CrawlerRunConfig:
             max_depth=self.max_depth,
             timeout=self.timeout_seconds * 1000,    # ms
             delay_between_pages=self.rate_delay,
+            delay_after_click=self.delay_after_click_s,
+            max_clicks_per_page=self.max_interactions_per_page,
+            headless=self.headless,
+            user_agent=self.user_agent,
+            enable_static_fallback=self.enable_static_fallback,
+            deny_patterns=list(self.deny_patterns),
+            strip_all_queries=self.strip_all_queries,
+        )
+        return cfg
+
+    def to_async_config(self, workers: int = 6):
+        """Return an ``AsyncCrawlConfig`` populated from this run config.
+
+        Args:
+            workers: Number of concurrent workers (default: 6)
+        """
+        from .async_crawler import AsyncCrawlConfig
+        cfg = AsyncCrawlConfig(
+            max_pages=self.max_pages,
+            max_depth=self.max_depth,
+            timeout=self.timeout_seconds * 1000,    # ms
+            max_workers=workers,
+            delay_between_pages=max(0.2, self.rate_delay / 3),  # faster with async
             delay_after_click=self.delay_after_click_s,
             max_clicks_per_page=self.max_interactions_per_page,
             headless=self.headless,

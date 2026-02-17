@@ -19,6 +19,9 @@ pandas>=2.1.0
 # Document Export
 python-docx>=1.1.0
 
+# Async HTTP (optional — used for FluidTopics API, falls back to requests)
+aiohttp>=3.9.0
+
 # Utilities
 urllib3>=2.1.0
 

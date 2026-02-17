@@ -130,43 +130,44 @@ def run_interactive_cli():
 # ---------------------------------------------------------------------------
 
 def _run_crawl(url: str, cfg: CrawlerRunConfig):
-    """Execute crawl using unified Playwright mode with auto-detection."""
+    """Execute crawl — uses async engine by default, sync as fallback."""
     start_time = time.time()
-    _run_unified(url, cfg)
+    _run_async(url, cfg)
     elapsed = time.time() - start_time
     # elapsed already printed inside helpers via print_summary
 
 
-def _run_unified(url: str, cfg: CrawlerRunConfig):
-    """Unified crawl: Playwright + auto-detect JS/HTML per page."""
-    from .deep_crawler import DeepDocCrawler
-    deep_cfg = cfg.to_deep_config()
-    crawler = DeepDocCrawler(deep_cfg)
+def _run_async(url: str, cfg: CrawlerRunConfig):
+    """Async crawl: high-performance worker pool with RAG pipeline."""
+    from .async_crawler import AsyncDocCrawler
+    import asyncio
+
+    async_cfg = cfg.to_async_config(workers=getattr(cfg, '_workers', 6))
+    crawler = AsyncDocCrawler(async_cfg)
 
     def progress_cb(pages_crawled, current_url, stats):
-        meaningful = stats.get('expandables_clicked', 0)
+        clicks = stats.get('expandables_clicked', 0)
         print(f"[Page {pages_crawled}/{cfg.max_pages}] {current_url[:70]}...")
-        print(f"  Mode: Auto | Interactions: {meaningful}")
+        if clicks:
+            print(f"  Interactions: {clicks}")
 
     crawler.set_progress_callback(progress_cb)
 
-    start = time.time()
-    result = crawler.crawl(url)
-    elapsed = time.time() - start
+    result = asyncio.run(crawler.crawl(url))
 
     if not result.pages:
         logger.warning("No pages were crawled — skipping export")
     else:
         logger.info(f"Crawl returned {len(result.pages)} pages — exporting...")
         try:
-            _export(crawler, result, cfg)
+            _export_async(crawler, result, cfg)
         except Exception as exc:
             logger.error(f"Export failed: {exc}", exc_info=True)
-    print_summary(result.stats, elapsed)
+    print_summary(result.stats, result.stats.get('elapsed_time', 0))
 
 
-def _export(crawler, result, cfg: CrawlerRunConfig):
-    """Export to whichever formats the config specifies."""
+def _export_async(crawler, result, cfg: CrawlerRunConfig):
+    """Export async crawl results to configured formats."""
     exported = []
     if cfg.output_json:
         crawler.export_json(result, cfg.output_json)
@@ -177,6 +178,13 @@ def _export(crawler, result, cfg: CrawlerRunConfig):
     if cfg.output_docx:
         crawler.export_docx(result, cfg.output_docx)
         exported.append(cfg.output_docx)
+    # RAG-specific exports
+    if getattr(cfg, 'output_rag_json', None):
+        crawler.export_rag_json(result, cfg.output_rag_json)
+        exported.append(cfg.output_rag_json)
+    if getattr(cfg, 'output_rag_jsonl', None):
+        crawler.export_rag_jsonl(result, cfg.output_rag_jsonl)
+        exported.append(cfg.output_rag_jsonl)
     if exported:
         print("\n" + "-" * 40)
         for path in exported:
@@ -188,19 +196,34 @@ def _export(crawler, result, cfg: CrawlerRunConfig):
 
 def print_summary(stats: dict, elapsed: float):
     """Print crawl summary."""
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 65)
     print("📊 CRAWL COMPLETE")
-    print("=" * 60)
+    print("=" * 65)
     print(f"  Total pages crawled: {stats.get('pages_crawled', 0)}")
     if stats.get('pages_skipped', 0) > 0:
         print(f"  Pages skipped:       {stats.get('pages_skipped', 0)} (empty/cookie/loading)")
     print(f"  Failed pages:        {stats.get('pages_failed', 0)}")
-    print(f"  Total time:          {elapsed:.1f}s")
-    print(f"  Speed:               {stats.get('pages_per_second', 0):.2f} pages/sec")
+    if stats.get('pages_retried', 0) > 0:
+        print(f"  Pages retried:       {stats.get('pages_retried', 0)}")
+    print(f"  Total time:          {stats.get('elapsed_time', elapsed):.1f}s")
+    print(f"  Overall speed:       {stats.get('pages_per_sec_overall', stats.get('pages_per_second', 0)):.2f} pages/sec")
+    if stats.get('pages_per_sec_rolling'):
+        print(f"  Rolling speed (30s): {stats.get('pages_per_sec_rolling', 0):.2f} pages/sec")
+    if stats.get('avg_page_ms'):
+        print(f"  Avg page time:       {stats.get('avg_page_ms', 0):.0f} ms")
+    if stats.get('p95_page_ms'):
+        print(f"  P95 page time:       {stats.get('p95_page_ms', 0):.0f} ms")
+    if stats.get('workers'):
+        print(f"  Workers:             {stats.get('workers', 0)}")
+    if stats.get('queue_peak'):
+        print(f"  Queue peak:          {stats.get('queue_peak', 0)}")
+    if stats.get('total_words'):
+        print(f"  Total words:         {stats.get('total_words', 0):,}")
+        print(f"  Avg words/page:      {stats.get('avg_words_per_page', 0):.0f}")
     if 'expandables_clicked' in stats:
-        print(f"  Meaningful clicks:   {stats.get('expandables_clicked', 0)}")
+        print(f"  Interactions:        {stats.get('expandables_clicked', 0)}")
     print(f"  Stop reason:         {stats.get('stop_reason', 'completed')}")
-    print("=" * 60)
+    print("=" * 65)
 
 
 # ---------------------------------------------------------------------------
@@ -222,20 +245,27 @@ Examples:
 
     parser.add_argument('url', nargs='?', help='URL to crawl (omit for interactive mode)')
     parser.add_argument('--depth', type=int, default=5, help='Maximum crawl depth (default: 5)')
-    parser.add_argument('--pages', type=int, default=150, help='Maximum pages to crawl (default: 150)')
-    parser.add_argument('--timeout', type=int, default=20, help='Timeout per page in seconds (default: 20)')
+    parser.add_argument('--pages', type=int, default=300, help='Maximum pages to crawl (default: 300)')
+    parser.add_argument('--timeout', type=int, default=15, help='Timeout per page in seconds (default: 15)')
     parser.add_argument('--max-interactions', type=int, default=50, help='Max interactions per page (default: 50)')
-    parser.add_argument('--rate', type=float, default=1.0, help='Delay between pages in seconds (default: 1.0)')
+    parser.add_argument('--rate', type=float, default=0.3, help='Delay between pages in seconds (default: 0.3)')
+    parser.add_argument('--workers', type=int, default=6, help='Number of concurrent workers (default: 6)')
     parser.add_argument('--output-json', type=str, help='JSON output file path')
     parser.add_argument('--output-csv', type=str, help='CSV output file path')
     parser.add_argument('--output-docx', type=str, help='DOCX output file path')
+    parser.add_argument('--output-rag-json', type=str, help='RAG corpus JSON output (chunked)')
+    parser.add_argument('--output-rag-jsonl', type=str, help='RAG chunks JSONL output (one per line)')
     parser.add_argument(
         '--deny-pattern', type=str, action='append', default=[],
-        help='Regex deny-pattern for URLs (repeatable). E.g. --deny-pattern "/pls/topic/" --deny-pattern "printMode"',
+        help='Regex deny-pattern for URLs (repeatable)',
     )
     parser.add_argument(
         '--strip-query', action='store_true',
-        help='Strip all query strings from discovered URLs before enqueue',
+        help='Strip all query strings from discovered URLs',
+    )
+    parser.add_argument(
+        '--sync', action='store_true',
+        help='Use legacy sync crawler instead of async',
     )
 
     args = parser.parse_args()
@@ -253,17 +283,61 @@ Examples:
     # Build unified config from flags
     cfg = CrawlerRunConfig.from_cli_args(args)
 
+    # Store workers count on config for async engine
+    cfg._workers = getattr(args, 'workers', 6)
+
     # Resolve output paths
-    has_explicit = args.output_json or args.output_csv or args.output_docx
+    has_explicit = args.output_json or args.output_csv or args.output_docx or getattr(args, 'output_rag_json', None) or getattr(args, 'output_rag_jsonl', None)
     if has_explicit:
         cfg.output_json = args.output_json
         cfg.output_csv  = args.output_csv
         cfg.output_docx = args.output_docx
+        cfg.output_rag_json = getattr(args, 'output_rag_json', None)
+        cfg.output_rag_jsonl = getattr(args, 'output_rag_jsonl', None)
     else:
         cfg.output_json = f"{base_name}.json"
 
     cfg.log_summary(url)
-    _run_crawl(url, cfg)
+
+    # Use sync or async engine
+    if getattr(args, 'sync', False):
+        _run_sync(url, cfg)
+    else:
+        _run_crawl(url, cfg)
+
+
+def _run_sync(url: str, cfg: CrawlerRunConfig):
+    """Legacy sync crawl path."""
+    from .deep_crawler import DeepDocCrawler
+    deep_cfg = cfg.to_deep_config()
+    crawler = DeepDocCrawler(deep_cfg)
+
+    def progress_cb(pages_crawled, current_url, stats):
+        print(f"[Page {pages_crawled}/{cfg.max_pages}] {current_url[:70]}...")
+
+    crawler.set_progress_callback(progress_cb)
+    start = time.time()
+    result = crawler.crawl(url)
+    elapsed = time.time() - start
+
+    if result.pages:
+        exported = []
+        if cfg.output_json:
+            crawler.export_json(result, cfg.output_json)
+            exported.append(cfg.output_json)
+        if cfg.output_csv:
+            crawler.export_csv(result, cfg.output_csv)
+            exported.append(cfg.output_csv)
+        if cfg.output_docx:
+            crawler.export_docx(result, cfg.output_docx)
+            exported.append(cfg.output_docx)
+        if exported:
+            print("\n" + "-" * 40)
+            for path in exported:
+                print(f"  ✅ Exported: {path}")
+            print("-" * 40)
+
+    print_summary(result.stats, elapsed)
 
 
 if __name__ == '__main__':
