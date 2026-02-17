@@ -411,6 +411,58 @@ class ScopeFilter:
         elif self.strip_query_keys:
             logger.info(f"[SCOPE] Query keys stripped: {self.strip_query_keys}")
 
+    def widen_scope(self, new_url: str) -> bool:
+        """
+        Widen the scope to cover both the current scope and *new_url*.
+
+        Computes the longest common path prefix between the current scope
+        path and the scope path derived from *new_url*.  If the result is
+        wider than the current scope (shorter prefix), the scope is
+        updated and ``True`` is returned.  Otherwise returns ``False``.
+        """
+        new_canon = _canonicalize(new_url)
+        if new_canon is None or self._root_canon is None:
+            return False
+        if new_canon.host != self._root_canon.host:
+            return False
+
+        new_scope = _scope_path_from_root(new_canon.path)
+        old_scope = self._scope_path
+
+        if new_scope == old_scope:
+            return False
+
+        # Find longest common path-segment prefix
+        old_parts = old_scope.split("/")
+        new_parts = new_scope.split("/")
+        common_parts = []
+        for a, b in zip(old_parts, new_parts):
+            if a == b:
+                common_parts.append(a)
+            else:
+                break
+
+        common = "/".join(common_parts)
+        if not common or common == "":
+            common = "/"
+        # Strip trailing slash (except root)
+        if common != "/" and common.endswith("/"):
+            common = common.rstrip("/")
+
+        if common == old_scope:
+            return False   # no change — new_url is already within scope
+
+        logger.info(f"[SCOPE] Widening: {old_scope} → {common}")
+        self._scope_path = common
+        return True
+
+    def widen_to_domain(self) -> None:
+        """Widen scope to the entire domain (accept any path on the host)."""
+        old = self._scope_path
+        if old != "/":
+            logger.info(f"[SCOPE] Widening to entire domain (was: {old})")
+            self._scope_path = "/"
+
     @property
     def scope_description(self) -> str:
         host = self._root_canon.host if self._root_canon else "(unknown)"

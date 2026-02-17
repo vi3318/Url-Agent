@@ -231,6 +231,7 @@ class DeepDocCrawler:
         self._pages: List[DeepPageData] = []
         self._errors: List[Dict] = []
         self._hierarchy: Dict = {}
+        self._scope_rejected_buffer: Set[str] = set()  # buffered scope-rejected URLs for recovery
         
         # Playwright
         self._playwright = None
@@ -455,6 +456,7 @@ class DeepDocCrawler:
                         # before they ever reach the BFS queue
                         if self._scope_filter and not self._scope_filter.accept(normalized):
                             rejected_scope += 1
+                            self._scope_rejected_buffer.add(normalized)
                             continue
 
                         if normalized in links:
@@ -752,6 +754,22 @@ class DeepDocCrawler:
                 # Brief stabilization wait
                 page.wait_for_timeout(1000)
                 
+                # ── Redirect detection: widen scope if needed ───────
+                # If Playwright followed a redirect (JS/server), the landing
+                # URL may be outside the original scope.  Widen the scope to
+                # the common path prefix of the original and landing URLs so
+                # links on the landing page are not all scope-rejected.
+                landing_url = page.url
+                if landing_url and landing_url != normalized_url:
+                    if self._scope_filter:
+                        widened = self._scope_filter.widen_scope(landing_url)
+                        if widened:
+                            logger.info(
+                                f"[SCOPE] Redirect detected: "
+                                f"{normalized_url[:50]} → {landing_url[:50]}"
+                            )
+                            self._scope_filter.log_scope()
+                
                 # ── Auto-detect page complexity ─────────────────────
                 # Determine if this page needs JS expansion or is simple HTML.
                 # This replaces the old manual standard/deep mode choice.
@@ -1031,6 +1049,7 @@ class DeepDocCrawler:
         self._pages.clear()
         self._errors.clear()
         self._hierarchy.clear()
+        self._scope_rejected_buffer.clear()
         self._stop_requested = False
         self._expandables_clicked = 0
         self._links_discovered = 0
@@ -1107,6 +1126,43 @@ class DeepDocCrawler:
                             f"scope_rejected={rejected_scope} "
                             f"queue_size={len(queue)}"
                         )
+                        
+                        # ── Zero-links fallback: widen scope if first page
+                        # found no in-scope links but had scope-rejected ones ──
+                        if (len(self._pages) == 1
+                                and new_enqueued == 0
+                                and len(self._scope_rejected_buffer) > 0
+                                and self._scope_filter
+                                and self._scope_filter._scope_path != "/"):
+                            logger.warning(
+                                f"[SCOPE] First page yielded 0 in-scope links but "
+                                f"{len(self._scope_rejected_buffer)} were scope-rejected "
+                                f"— widening to domain"
+                            )
+                            self._scope_filter.widen_to_domain()
+                            self._scope_filter.log_scope()
+                            # Re-check buffered scope-rejected links
+                            recovered = 0
+                            for link in self._scope_rejected_buffer:
+                                if link in self._visited_urls or link in self._queued_urls:
+                                    continue
+                                if self._scope_filter.accept(link):
+                                    queue.append((
+                                        link,
+                                        depth + 1,
+                                        page_data.url,
+                                        page_data.section_path.copy()
+                                    ))
+                                    self._queued_urls.add(link)
+                                    recovered += 1
+                            page_data.internal_links = [
+                                link for link in self._scope_rejected_buffer
+                                if self._scope_filter.accept(link)
+                            ]
+                            logger.info(
+                                f"[SCOPE] Recovered {recovered} links after "
+                                f"scope widening — queue_size={len(queue)}"
+                            )
                     
                     # Rate limiting
                     time.sleep(self.config.delay_between_pages)
