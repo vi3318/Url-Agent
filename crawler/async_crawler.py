@@ -48,6 +48,7 @@ from .utils import URLNormalizer, ensure_joinable_base
 from .monitor import PerformanceMonitor, PageTiming, CrawlMetrics
 from .rag_model import RAGCorpus, RAGDocument
 from .pipeline import transform_page, PipelineConfig
+from . import interaction_policy
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +110,8 @@ class AsyncCrawlConfig:
     # Per-page expansion limits
     max_clicks_per_page: int = 300
     max_expansion_passes: int = 6
+    max_expansion_time_s: float = 30.0       # hard time limit per page expansion
+    consecutive_wasted_limit: int = 15       # stop after N wasted clicks in a row
 
     # Browser
     headless: bool = True
@@ -139,6 +142,9 @@ class AsyncCrawlConfig:
         # Oracle / JS-heavy tree sites — the tree IS the content after
         # expanding all [aria-expanded="false"] items.
         '[role="tree"]',
+        # FluidTopics (ServiceNow docs) content containers
+        'ft-reader', 'ft-designed-page', 'ft-homepage', 'ft-search',
+        '.FT-content', '.FT-reader', '[class*="FT-"]',
     ])
     exclude_selectors: List[str] = field(default_factory=lambda: [
         'nav', 'header', 'footer', '.sidebar', '.toc',
@@ -464,6 +470,7 @@ class AsyncDocCrawler:
 
     async def _worker(self, worker_id: int) -> None:
         """Worker coroutine — pulls URLs from queue and crawls them."""
+        consecutive_empty = 0
         while not self._stop_requested:
             try:
                 # Check page limit
@@ -477,9 +484,19 @@ class AsyncDocCrawler:
                     url, depth, parent_url, section_path = await asyncio.wait_for(
                         self._queue.get(), timeout=5.0
                     )
+                    consecutive_empty = 0
                 except asyncio.TimeoutError:
-                    # Check if all work is done
-                    if self._queue.empty():
+                    # Don't exit immediately — another worker may still be
+                    # crawling a page that will enqueue new links (e.g. the
+                    # first page of a FluidTopics site takes 30-60s).
+                    consecutive_empty += 1
+                    metrics = await self.monitor.snapshot()
+                    has_active = metrics.active_workers > 0
+                    if self._queue.empty() and not has_active:
+                        # Nobody is working and queue is empty — truly done
+                        break
+                    if consecutive_empty >= 12 and not has_active:
+                        # 60s of empty queue with no active work → bail
                         break
                     continue
 
@@ -517,6 +534,12 @@ class AsyncDocCrawler:
             except asyncio.CancelledError:
                 break
             except Exception as e:
+                # TargetClosedError is expected during shutdown when browser
+                # closes while workers are still mid-navigation.
+                err_name = type(e).__name__
+                if 'TargetClosedError' in err_name or 'closed' in str(e).lower():
+                    logger.debug(f"[WORKER-{worker_id}] Browser closed during work")
+                    break
                 logger.error(f"[WORKER-{worker_id}] Unexpected error: {e}", exc_info=True)
 
     async def _wait_for_completion(self, workers: List[asyncio.Task]) -> None:
@@ -731,6 +754,13 @@ class AsyncDocCrawler:
             except PlaywrightTimeout:
                 pass
 
+            # ── FluidTopics (GWT SPA) detection & wait ──────────────
+            # ServiceNow docs, etc. use FluidTopics which needs extra
+            # time for the GWT bootstrap to fetch + render content.
+            is_ft = await self._detect_fluidtopics(page)
+            if is_ft:
+                await self._wait_for_fluidtopics(page)
+
             # Link stabilization: poll until <a href> count stops changing.
             # Oracle, ServiceNow, and other JS-heavy sites render nav links
             # asynchronously; without this we discover only 1-3 links.
@@ -748,8 +778,12 @@ class AsyncDocCrawler:
             # Cookie consent dismissal
             await self._dismiss_cookie_consent(page)
 
-            # SPA content wait
-            await self._wait_for_spa_content(page)
+            # Dismiss WalkMe / survey overlays that block clicks
+            await self._dismiss_overlays(page)
+
+            # SPA content wait (non-FT sites; FT already waited above)
+            if not is_ft:
+                await self._wait_for_spa_content(page)
 
             # Redirect detection → scope widening
             landing_url = page.url
@@ -787,6 +821,27 @@ class AsyncDocCrawler:
                 links = []
             else:
                 links = await self._extract_links(page, normalized)
+
+                # Supplement with shadow DOM links (FluidTopics, Web Components)
+                if is_ft or len(links) < 3:
+                    shadow_links = await self._extract_shadow_dom_links(
+                        page, normalized
+                    )
+                    existing = set(links)
+                    for sl in shadow_links:
+                        if sl not in existing:
+                            links.append(sl)
+                            existing.add(sl)
+
+                # Supplement with FluidTopics resolver links
+                if is_ft and self._ft_resolver:
+                    ft_links = self._build_ft_links()
+                    existing = set(links)
+                    for fl in ft_links:
+                        n = self.url_normalizer.normalize(fl)
+                        if n and n not in existing:
+                            links.append(n)
+                            existing.add(n)
 
             # Breadcrumb and section path
             breadcrumb = await self._extract_breadcrumb(page)
@@ -1328,163 +1383,257 @@ class AsyncDocCrawler:
         except Exception:
             return 'js'
 
-    async def _expand_all_elements(self, page: Page) -> Tuple[int, bool]:
-        """Native async expansion — multi-pass click of expandable elements.
+    # ------------------------------------------------------------------
+    # FluidTopics (GWT SPA) support
+    # ------------------------------------------------------------------
 
-        Many documentation sites (Oracle OHC, ServiceNow, Microsoft Learn)
-        use nested tree structures where expanding a parent reveals new
-        collapsed children.  A single-pass approach misses all nested items.
+    async def _detect_fluidtopics(self, page: Page) -> bool:
+        """Detect if the current page is a FluidTopics-powered site.
 
-        This method:
-        1. Tries bulk "Expand All" buttons first.
-        2. Runs multiple expansion passes (up to ``max_expansion_passes``),
-           re-querying collapsed elements each pass so newly-revealed
-           nested items are found and expanded.
+        FluidTopics (used by ServiceNow, etc.) is a GWT-based SPA that
+        renders all content via Web Components.  The initial HTML is just
+        a loading spinner; real content appears only after GWT bootstrap.
         """
-        expanded = 0
-        attempted = 0
-        max_clicks = self.config.max_clicks_per_page
-        hit_limit = False
-        clicked_fps: Set[str] = set()
+        try:
+            return await page.evaluate("""
+                () => {
+                    if (window['FluidTopicsClientConfiguration']) return true;
+                    if (document.getElementById('fluidtopicsclient')) return true;
+                    if (document.body?.className?.includes('FT-version')) return true;
+                    if (document.getElementById('FT-application-loader')) return true;
+                    const scripts = document.querySelectorAll('script[src]');
+                    for (const s of scripts) {
+                        if (s.src && s.src.includes('fluidtopics')) return true;
+                    }
+                    return false;
+                }
+            """)
+        except Exception:
+            return False
 
-        # ── Phase 0: Try bulk "Expand All" buttons ───────────────────
-        bulk_selectors = [
-            'button:has-text("Expand All")', 'button:has-text("Expand all")',
-            'a:has-text("Expand All")', '[aria-label="Expand All"]',
-            'button:has-text("Show All")', 'button:has-text("Open All")',
-            # Oracle JET uses custom <oj-button> elements with toggle class
-            'oj-button[aria-expanded="false"]',
-            '[class*="toggle"][aria-expanded="false"]',
-        ]
-        for sel in bulk_selectors:
+    async def _wait_for_fluidtopics(self, page: Page) -> None:
+        """Wait for FluidTopics GWT SPA to finish rendering.
+
+        GWT bootstrap sequence:
+        1. Load initial HTML (just #FT-application-loader spinner)
+        2. Download fluidtopicsclient.nocache.js (GWT bootstrap)
+        3. Download the compiled GWT permutation JS
+        4. GWT initializes, makes API calls (/api/khub/maps/{id}/pages)
+        5. GWT renders content into Web Components
+
+        We wait for step 5 by polling for the loader to disappear and
+        for real content to appear.
+        """
+        logger.info("[FT-WAIT] Detected FluidTopics site — waiting for GWT render...")
+        t0 = time.monotonic()
+
+        # Phase 1: Wait for the loader to disappear (GWT bootstrap)
+        try:
+            await page.wait_for_function(
+                """
+                () => {
+                    const loader = document.getElementById('FT-application-loader');
+                    if (!loader) return true;
+                    const style = window.getComputedStyle(loader);
+                    return style.display === 'none' || style.visibility === 'hidden'
+                           || style.opacity === '0' || loader.offsetParent === null;
+                }
+                """,
+                timeout=15000,
+            )
+            logger.debug("[FT-WAIT] Loader disappeared")
+        except PlaywrightTimeout:
+            logger.warning("[FT-WAIT] Loader still visible after 15s")
+
+        # Phase 2: Wait for network to settle (GWT API calls)
+        try:
+            await page.wait_for_load_state('networkidle', timeout=8000)
+        except PlaywrightTimeout:
+            pass
+
+        # Phase 3: Quick check if FT resolver already populated
+        async with self._ft_lock:
+            has_resolver = bool(self._ft_resolver)
+        if not has_resolver:
+            # Poll briefly — API response may arrive any moment
+            poll_end = time.monotonic() + 4.0
+            while time.monotonic() < poll_end:
+                await asyncio.sleep(0.5)
+                async with self._ft_lock:
+                    if self._ft_resolver:
+                        has_resolver = True
+                        logger.info(
+                            f"[FT-WAIT] Resolver ready: {len(self._ft_resolver)} topics"
+                        )
+                        break
+
+        # Phase 4: Wait for body text to exceed loading-placeholder level.
+        # Once we see >300 chars of text OR resolver is ready, we're done.
+        prev_len = 0
+        stable = 0
+        text_ok = False
+        poll_end = time.monotonic() + 6.0
+        while time.monotonic() < poll_end:
             try:
-                btns = await page.query_selector_all(sel)
-                for btn in btns:
-                    if not btn:
-                        continue
-                    try:
-                        before = await page.evaluate(
-                            "() => document.querySelectorAll('[aria-expanded=\"false\"]').length"
-                        )
-                        await btn.evaluate("el => el.click()")
-                        await asyncio.sleep(1.5)
-                        after = await page.evaluate(
-                            "() => document.querySelectorAll('[aria-expanded=\"false\"]').length"
-                        )
-                        delta = before - after  # collapsed count should decrease
-                        if delta > 3:
-                            logger.info(
-                                f"[EXPAND] Bulk toggle revealed content "
-                                f"({before} → {after} collapsed items)"
-                            )
-                            expanded += delta
-                            self._expandables_clicked += 1
-                            # Continue to Phase 1 for any remaining collapsed items
-                    except Exception:
-                        continue
+                cur_len = await page.evaluate(
+                    "() => (document.body?.innerText || '').trim().length"
+                )
             except Exception:
-                continue
-
-        # ── Phase 1: Multi-pass expansion of collapsed elements ──────
-        # The key insight: expanding a parent often reveals new collapsed
-        # children.  We re-query each pass to catch them.
-        aria_selector = '[aria-expanded="false"]'
-        other_selectors = [
-            'details:not([open]) > summary',
-            '.collapsed', '.accordion-button.collapsed',
-            '[data-toggle="collapse"]', '[data-bs-toggle="collapse"]',
-            '.tree-node:not(.expanded)',
-            '.ohc-sidebar-item',
-        ]
-        if self.config.interactive_selectors:
-            other_selectors = self.config.interactive_selectors
-
-        for pass_num in range(self.config.max_expansion_passes):
-            if attempted >= max_clicks:
-                hit_limit = True
                 break
-
-            # Re-query collapsed elements (captures newly revealed nested items)
-            items = await page.query_selector_all(aria_selector)
-            if not items:
+            if cur_len > 300:
+                text_ok = True
                 break
-
-            pass_expanded = 0
-            logger.debug(f"[EXPAND] Pass {pass_num + 1}: {len(items)} collapsed items")
-
-            for el in items:
-                if attempted >= max_clicks:
-                    hit_limit = True
+            if cur_len > 100 and cur_len == prev_len:
+                stable += 1
+                if stable >= 2:
+                    text_ok = True
                     break
-                try:
-                    fp = await el.evaluate(
-                        "el => el.tagName + '|' + (el.className || '') + '|' + (el.textContent || '').trim().substring(0, 60)"
-                    )
-                    if fp in clicked_fps:
-                        continue
-                    clicked_fps.add(fp)
-
-                    # Use JS-level click (not Playwright click) because tree
-                    # items inside collapsed parents may not pass Playwright's
-                    # visibility checks even though they are functional DOM
-                    # nodes that respond to click events.
-                    await el.evaluate("el => el.click()")
-                    attempted += 1
-                    pass_expanded += 1
-                    expanded += 1
-
-                    # Micro-delay — batch in groups to reduce overhead
-                    if pass_expanded % 10 == 0:
-                        await asyncio.sleep(self.config.delay_after_click)
-                except Exception:
-                    attempted += 1
-                    continue
-
-            if pass_expanded == 0:
-                break
-
-            # Let DOM update between passes so nested items become visible
+            else:
+                stable = 0
+                prev_len = cur_len
             await asyncio.sleep(0.5)
 
-        # ── Phase 2: Other expand selectors (details, accordions, etc.) ──
-        for sel in other_selectors:
-            if attempted >= max_clicks:
-                hit_limit = True
-                break
+        elapsed = time.monotonic() - t0
+        logger.info(f"[FT-WAIT] Done in {elapsed:.1f}s (resolver={'yes' if has_resolver else 'no'}, text={'ok' if text_ok else 'sparse'})")
+
+        # Brief settle
+        await asyncio.sleep(0.5)
+
+    def _build_ft_links(self) -> List[str]:
+        """Build absolute URLs from the FluidTopics resolver map.
+
+        Called after the FT resolver is populated from the intercepted
+        /api/khub/maps/{mapId}/pages API response.  Returns a list of
+        full URLs for all topics in the documentation set.
+        """
+        if not self._ft_resolver or not self._ft_base_url:
+            return []
+
+        links = []
+        base = self._ft_base_url.rstrip('/')
+        for pretty_url in self._ft_resolver:
+            # prettyUrl is like /bundle/release-product/page/topic.html
+            # or /r/something/page.html — prepend the base
+            if pretty_url.startswith('/'):
+                full_url = base + pretty_url
+            else:
+                full_url = base + '/' + pretty_url
+            links.append(full_url)
+
+        logger.info(f"[FT-LINKS] Built {len(links)} topic URLs from resolver")
+        return links
+
+    async def _extract_shadow_dom_links(
+        self, page: Page, base_url: str
+    ) -> List[str]:
+        """Extract links from inside shadow DOM trees.
+
+        FluidTopics and other Web Component-based sites render their
+        navigation links inside shadow roots, invisible to normal
+        querySelectorAll('a[href]').  This helper recursively walks
+        all shadow roots and collects anchor hrefs.
+        """
+        try:
+            raw_hrefs: List[str] = await page.evaluate("""
+                () => {
+                    const SKIP = new Set(['STYLE', 'SCRIPT', 'NOSCRIPT']);
+                    const hrefs = new Set();
+                    function walk(root, depth) {
+                        if (depth > 12) return;
+                        const nodes = root.querySelectorAll
+                            ? root.querySelectorAll('a[href]')
+                            : [];
+                        for (const a of nodes) {
+                            const h = a.getAttribute('href');
+                            if (h && !h.startsWith('javascript:') && !h.startsWith('#'))
+                                hrefs.add(h);
+                        }
+                        // Recurse into shadow roots
+                        const allEls = root.querySelectorAll
+                            ? root.querySelectorAll('*')
+                            : [];
+                        for (const el of allEls) {
+                            if (SKIP.has(el.tagName)) continue;
+                            if (el.shadowRoot) walk(el.shadowRoot, depth + 1);
+                        }
+                    }
+                    // Walk all shadow roots from document
+                    document.querySelectorAll('*').forEach(el => {
+                        if (el.shadowRoot) walk(el.shadowRoot, 0);
+                    });
+                    return [...hrefs];
+                }
+            """)
+        except Exception:
+            raw_hrefs = []
+
+        if not raw_hrefs:
+            return []
+
+        base_domain = urlparse(base_url).netloc.lower()
+        page_url = page.url
+        links: List[str] = []
+
+        for href in raw_hrefs:
             try:
-                elements = await page.query_selector_all(sel)
-                for el in elements:
-                    if attempted >= max_clicks:
-                        hit_limit = True
-                        break
-                    try:
-                        fp = await el.evaluate(
-                            "el => el.tagName + '|' + (el.className || '') + '|' + (el.textContent || '').trim().substring(0, 60)"
-                        )
-                        if fp in clicked_fps:
-                            continue
-                        clicked_fps.add(fp)
-
-                        if not await el.is_visible():
-                            continue
-
-                        await el.click(timeout=1500)
-                        attempted += 1
-                        expanded += 1
-                        await asyncio.sleep(self.config.delay_after_click)
-                    except Exception:
-                        attempted += 1
-                        continue
+                absolute = urljoin(ensure_joinable_base(page_url), href)
+                if not absolute.startswith(('http://', 'https://')):
+                    continue
+                if urlparse(absolute).netloc.lower() != base_domain:
+                    continue
+                if '#' in absolute:
+                    absolute = absolute.split('#')[0]
+                normalized = self.url_normalizer.normalize(absolute)
+                if normalized and normalized not in links:
+                    links.append(normalized)
             except Exception:
                 continue
 
-        self._expandables_clicked += expanded
-        if expanded > 0:
-            logger.info(
-                f"[EXPAND] {expanded} expanded / {attempted} attempted "
-                f"({self.config.max_expansion_passes} passes max)"
-            )
-        return expanded, hit_limit
+        if links:
+            logger.info(f"[SHADOW-LINKS] Found {len(links)} links in shadow DOM")
+        return links
+
+    async def _expand_all_elements(self, page: Page) -> Tuple[int, bool]:
+        """Enterprise-grade async expansion via interaction_policy engine.
+
+        Delegates to ``interaction_policy.async_expansion_loop`` which provides:
+        - Full 130+ selector catalogue (DEFAULT_INTERACTIVE_SELECTORS)
+        - Full 20+ bulk-expand selectors (BULK_EXPAND_SELECTORS)
+        - Meaningful-delta gating (pre/post DOM snapshot on every click)
+        - Navigation-link safety (skips plain <a> that would navigate)
+        - Already-expanded detection (prevents collapsing open content)
+        - Rich fingerprint dedup (tag + id + class + text + position)
+        - Text-heuristic scan for elements selectors miss
+        - Multi-pass ARIA tree re-query for nested structures
+        - Time budget + consecutive-wasted-click early exit
+
+        Enterprise site coverage:
+        - Oracle Docs (JET, OHC tree, RequireJS)
+        - Microsoft Learn (details, tabs)
+        - ServiceNow (FluidTopics, Web Components)
+        - SAP Fiori / UI5 (sapMPanel, sapMPanelHdr)
+        - Confluence / Atlassian (expand-control, aui-expander)
+        - Ant Design, MUI, Chakra UI, Notion, GitBook
+        - Docusaurus, MkDocs Material, ReadTheDocs / Sphinx
+        - Salesforce Lightning, Zendesk Guide
+        - Bootstrap 4/5 accordions
+        - Next.js / Nextra / Vercel docs
+        """
+        exp_result = await interaction_policy.async_expansion_loop(
+            page,
+            max_clicks=self.config.max_clicks_per_page,
+            max_passes=self.config.max_expansion_passes,
+            click_timeout_ms=1500,
+            delay_after_click_s=self.config.delay_after_click,
+            meaningful_text_delta=80,
+            meaningful_link_delta=1,
+            selectors=self.config.interactive_selectors,  # None = full catalogue
+            max_expansion_time_s=self.config.max_expansion_time_s,
+            consecutive_wasted_limit=self.config.consecutive_wasted_limit,
+        )
+
+        self._expandables_clicked += exp_result.meaningful_clicks
+        return exp_result.meaningful_clicks, exp_result.hit_limit
 
     async def _wait_for_links_stable(self, page: Page, timeout_s: float = 4.0) -> None:
         """Poll until <a href> count stabilizes — handles Oracle/RequireJS tree nav.
@@ -1520,14 +1669,43 @@ class AsyncDocCrawler:
             pass
 
     async def _dismiss_cookie_consent(self, page: Page) -> None:
-        """Dismiss cookie consent banners."""
+        """Dismiss cookie consent banners.
+
+        Runs once per page. Uses safe timeout. Does not block expansion.
+        Covers OneTrust, TrustArc, CookieBot, generic patterns (25+ selectors).
+        """
         selectors = [
-            'button:has-text("Accept")', 'button:has-text("Accept All")',
-            'button:has-text("Accept Cookies")', 'button:has-text("I Accept")',
-            'button:has-text("Agree")', 'button:has-text("OK")',
-            'button:has-text("Got it")', 'button:has-text("Allow All")',
-            '#onetrust-accept-btn-handler', '.cookie-accept', '.cc-accept',
-            '[data-testid="cookie-accept"]', '.consent-accept',
+            # Common button text patterns
+            'button:has-text("Accept")',
+            'button:has-text("Accept and Proceed")',
+            'button:has-text("Accept All")',
+            'button:has-text("Accept Cookies")',
+            'button:has-text("I Accept")',
+            'button:has-text("Agree")',
+            'button:has-text("OK")',
+            'button:has-text("Got it")',
+            'button:has-text("Allow All")',
+            'button:has-text("I Understand")',
+            'button:has-text("Close")',
+            # OneTrust
+            '#onetrust-accept-btn-handler',
+            # TrustArc (ServiceNow, etc.)
+            '#truste-consent-button',
+            '.trustarc-agree-btn',
+            'a.call:has-text("Agree and Proceed")',
+            '#consent_agree_button',
+            '.pdynamicbutton:has-text("Continue")',
+            # CookieBot
+            '#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
+            '#CybotCookiebotDialogBodyButtonAccept',
+            # Common id / class patterns
+            '.cookie-accept',
+            '.cc-accept',
+            '[data-testid="cookie-accept"]',
+            '.consent-accept',
+            '#cookie-accept',
+            '#accept-cookies',
+            '.js-accept-cookies',
         ]
         for selector in selectors:
             try:
@@ -1540,8 +1718,75 @@ class AsyncDocCrawler:
             except Exception:
                 continue
 
+        # Fallback: look inside iframes for consent dialogs (TrustArc truste-banner)
+        try:
+            for frame in page.frames:
+                if frame == page.main_frame:
+                    continue
+                frame_url = frame.url or ''
+                if any(k in frame_url.lower() for k in ['truste', 'consent', 'cookie', 'trustarc']):
+                    for sel in [
+                        'a.call:has-text("Agree and Proceed")',
+                        'button:has-text("Accept")',
+                        '#consent_agree_button',
+                        '.pdynamicbutton',
+                        'a.call',
+                    ]:
+                        try:
+                            btn = await frame.query_selector(sel)
+                            if btn and await btn.is_visible():
+                                await btn.click(timeout=2000)
+                                logger.info(f"[COOKIE] Dismissed TrustArc in iframe via: {sel}")
+                                await asyncio.sleep(0.5)
+                                return
+                        except Exception:
+                            continue
+        except Exception:
+            pass
+
+    async def _dismiss_overlays(self, page: Page) -> None:
+        """Remove WalkMe, survey, and promotional overlays that block clicks.
+
+        ServiceNow and other enterprise sites inject WalkMe guided tours
+        and similar overlays that sit on top of all content, intercepting
+        pointer events and preventing expansion clicks.
+        """
+        try:
+            removed = await page.evaluate("""
+                () => {
+                    let count = 0;
+                    // WalkMe overlay
+                    const walkmeIds = [
+                        'walkme-popup-background', 'walkme-overlay',
+                        'walkme-player', 'walkme-balloon',
+                    ];
+                    for (const id of walkmeIds) {
+                        const el = document.getElementById(id);
+                        if (el) { el.remove(); count++; }
+                    }
+                    // WalkMe classes
+                    document.querySelectorAll(
+                        '.walkme-override, .wm-outer-overlay, [class*="walkme"]'
+                    ).forEach(el => { el.remove(); count++; });
+                    // Generic overlays / modals that intercept pointer events
+                    document.querySelectorAll(
+                        '.modal-backdrop, .overlay-backdrop'
+                    ).forEach(el => {
+                        const s = window.getComputedStyle(el);
+                        if (s.position === 'fixed' || s.position === 'absolute') {
+                            el.remove(); count++;
+                        }
+                    });
+                    return count;
+                }
+            """)
+            if removed:
+                logger.debug(f"[OVERLAY] Removed {removed} overlay elements")
+        except Exception:
+            pass
+
     async def _wait_for_spa_content(self, page: Page) -> None:
-        """Wait if SPA content is loading."""
+        """Wait if SPA content is loading (non-FluidTopics sites)."""
         try:
             body_text = await page.evaluate(
                 "() => (document.body?.innerText || '').trim().substring(0, 500)"
@@ -1554,14 +1799,22 @@ class AsyncDocCrawler:
 
             if is_loading or is_cookie:
                 logger.info("[SPA-WAIT] Detected loading/placeholder...")
-                for sel in ['main', 'article', '.content', '#content', '[role="main"]']:
+                wait_sels = [
+                    'main', 'article', '.content', '#content', '[role="main"]',
+                    '.documentation', '.doc-content', '.markdown-section',
+                    '.md-content', '.rst-content',
+                ]
+                for sel in wait_sels:
                     try:
-                        await page.wait_for_selector(sel, timeout=6000, state='attached')
-                        await asyncio.sleep(1.0)
+                        await page.wait_for_selector(sel, timeout=8000, state='attached')
+                        logger.debug(f"[SPA-WAIT] Content appeared via: {sel}")
+                        await asyncio.sleep(1.5)
                         return
                     except PlaywrightTimeout:
                         continue
-                await asyncio.sleep(3.0)
+                # Fallback: just wait
+                await asyncio.sleep(5.0)
+                logger.debug("[SPA-WAIT] No content selector appeared, waited 5s")
         except Exception:
             pass
 
