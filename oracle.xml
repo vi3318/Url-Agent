@@ -1,0 +1,2512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/index.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/hcm-tables-and-views.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiagentpreferences-18951.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiagenttags-5645.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiagenttopicmappings-27948.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.33</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiagentworkflowmappings-30936.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.26</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiapplications-4920.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.21</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faichannelmanifests-12980.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.17</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinksb-30279.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.13</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinksb-29775.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.11</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinkstl-29010.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.09</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinkstl-4915.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.07</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinktoolsb-24041.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.05</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinktoolstl-16088.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.04</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiemailaccountmappings-14756.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.04</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiembeddingsmodels-3758.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.03</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faievaluations-12496.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.02</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faievaluationruns-13675.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.02</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faievalmetricsaggr-20864.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.01</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiextchatcorrelation-19558.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.01</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faifeaturemodelstatus-13320.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.01</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faigenaifeedback-19845.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.01</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faigenaimetrics-16489.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.01</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faigenairequests-28101.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiimaudit-13463.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiimdeleteentity-25874.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiimidfilemap-21977.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiinstructionsb-21897.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiinstructionstl-28680.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimarketplaceworkflows-10620.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimarketplaceworkflows-29291.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimlusecasesb-27542.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimlusecasestl-16868.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimodelconfigs-23601.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimodelconfigparams-15114.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimonitormetricsaggr-13033.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimsgdlvyoptnsb-28961.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimsgdlvyoptnstl-22040.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimsgdlvyoptnparts-20747.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiobjectspecifications-30313.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faipromptcodes-23322.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faipromptmdlparams-14279.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiprompttmpls-16382.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiprompttmplguardrails-26636.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/fairagdocuments-12918.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/fairagdocchunks-9950.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/fairagdocchunkembeddingsa-15244.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/fairagdocchunkembeddingsb-14850.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/fairagdocchunkmetadata-25600.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/fairagusecasestatus-30882.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/fairesttools-28856.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamanomalydefb-27317.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamanomalydeftl-20770.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamanomalydetection-13311.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisambasesequencedefb-25020.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisambasesequencedeftl-30808.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisambasesequenceobjb-29733.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisambasesequenceobjtl-31439.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisambaseseqdeflistobj-28106.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisammetric-14425.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisammonitoringperiod-13725.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamoneviewprocess-30349.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamrawess-4715.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamrawhdl-9297.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamrawload-20111.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamrawpayrollflow-18083.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamrawprocessout-7974.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamsequence-29231.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamsequencedefinition-13792.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamsequencedeflistobj-13052.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamsequenceobject-29713.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisearchschemamapping-8099.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectsb-7919.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectsb-16235.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectstl-27233.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectstl-21137.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectfieldsb-14995.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectfieldstl-28533.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitags-11412.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitagvalues-11623.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitagvalueusages-22660.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitmplmdlparams-13107.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitopicsb-14774.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitopicsb-8249.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitopicstl-27721.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitopicstl-6215.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiuserconversations-19351.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiusecases-25756.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowsb-21815.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowsb-22429.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowstl-13031.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowstl-21169.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowexecutions-14988.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowroles-27172.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowseedroles-29523.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowtags-15407.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinksvl-6625.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faideeplinktoolsvl-7198.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiinstructionsvl-5095.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimlusecasesvl-4618.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faimsgdlvyoptnsvl-5695.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamanomalydefvl-7664.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamanomalyprocessoutv-6653.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamanomalyprocessv-5154.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisambasesequencedefvl-7139.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisambasesequenceobjvl-3204.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamoneviewsequencev-5395.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamtbsoctometricv-5087.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamtbsprocessoutdatav-6803.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisamtbsprocessdatav-4937.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectsvl-5611.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faisupptobjectfieldsvl-4253.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faitopicsvl-5116.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/faiworkflowsvl-4431.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsenceagreementsf-11015.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsenceagreementsftl-17647.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencecategoriesf-14168.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencecategoriesftl-26034.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencepatternsf-17949.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencepatternrgnsf-21047.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsenceplansf-29793.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsenceplansf-4072.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsenceplansftl-8758.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencereasonsf-23928.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencereasonsftl-26609.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypesf-18374.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypesf-5027.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypesftl-16195.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypecatef-14937.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypeplansf-17121.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypeplansf-31260.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypereasonsf-15639.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypereasonsf-27228.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetyperegionsf-24646.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetyperegionsf-4767.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsagreementcertsf-25968.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsagreementplansf-7259.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsagreementplansf-14118.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabscertificationsf-24719.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabscertificationsftl-16039.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabspatternusagesf-26616.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsprocesslock-23965.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabstypecertsf-12179.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabstypecertsf-28706.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabstypergnusagesf-25157.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabstypergnusagesf-19589.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsusagerulesf-21665.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancaccrualbandsf-25910.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancaccrualbandsf-18558.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancappconfigparamsf-7931.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancavailabilitytypesb-15123.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancavailabilitytypestl-10936.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancavailabilitytypeprivs-4753.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancavailtypebreaksb-6100.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancavailtypebreakstl-29492.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccalendarb-23690.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccalendarcalevent-16858.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccalendarsubscriber-29605.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccalendartl-27422.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccaleventsetb-18341.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccaleventsetevent-8440.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccaleventsetgrp-7882.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccaleventsettl-15573.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancentlbandsdtlf-22515.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancentlbandsdtlf-29750.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancentlbandsdtlftl-15430.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancentlbandsf-10952.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancentlbandsf-21705.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancevents-24027.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anceventstl-18915.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancgrpcriteria-5880.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancjobconfiguration-28775.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancjobconfigurationtl-27955.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancjobruns-10137.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmatrixcontexts-21328.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmatrixsources-29957.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmatrixtrxns-19693.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmxinputexpsf-19352.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmxinputparams-23700.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmxinputparamstl-30960.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmxsrccontexts-5158.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmxtrxncontexts-18528.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmxtrxninputparams-10696.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpayinterfaceheader-29796.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpayinterfacelines-10946.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsenceinfo-12433.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsaggregation-9436.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmnts-23827.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmntstl-27674.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmntcerts-8018.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmntelig-3117.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmntent-31352.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmntentdtls-13536.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmntprtnrs-30650.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabscerts-19200.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsdailydtls-27104.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsentries-13542.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsentries-9802.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsentrydtls-26307.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsentrydtls-30624.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsentryessbkup-15324.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsentsplcond-23150.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsheaders-23981.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsmaternity-16929.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsmaternity-20300.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsplanentries-7945.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsplanentries-20613.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsplnsumment-6374.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsplnsumment-9623.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsqualentl-16579.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsshiftbreakdown-11643.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsshiftcalcent-27979.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabstypeentries-9653.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabstyplnkg-14476.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperaccrualentries-5093.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperaccrualentries-5014.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperacrlentrydtls-16885.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperacrlentrydtls-31201.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperacrlentrydtlsmap-20794.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperacrlxfrentrymap-11192.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperavailabilities-26042.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperavaildetails-9887.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperbenelctddisb-14105.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpercaseabsences-3154.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpercasebreakdown-26587.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpercovrsubbal-25800.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpercovrsubbalmap-11907.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperevents-3004.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperplanenrollment-9713.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperplanenrollment-16706.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperplanentrydtls-13047.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperprocevtque-23068.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancplaneligprofilesf-19557.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancplaneligprofilesf-25642.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancplanentriesf-26065.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancplaneventsf-6955.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancplaneventsf-25788.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancprocessmessages-11050.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancreprocessevents-23958.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anctypeevents-11618.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anctypeevents-25177.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anctypeeventsf-7702.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancwfmintegrationmigbkp-24166.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancwfminterfaceheader-27241.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/hwmtmrepatrbsmigbkp-20817.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsenceagreementsvl-6364.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencecategoriesvl-4542.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsenceplansvl-6373.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencereasonsvl-3557.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabsencetypesvl-4224.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancabscertificationsvl-4637.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancaccrualbalancesv-7948.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancavailabilitytypesvl-8490.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancavailtypebreaksvl-7491.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccalendarvl-3324.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anccaleventsetvl-5675.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/anceventsvl-7156.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancjobconfigurationvl-4638.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancmxinputparamsvl-4298.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsagrmntsvl-8046.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancperabsentriesv-3736.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpsanaplannedabsv-4743.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancpsevtabsencesv-8498.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/ancwfminterfaceheaderv-5359.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/perabsagreementsvl-8749.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benacareporting-11225.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benacrsptipcvgf-18398.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactntyp-24628.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactntyptl-23996.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactybasertctfnf-7925.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactybasertf-28275.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactyrtdedschedf-19696.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactyrtptdlmtf-13167.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactyrtpymtschedf-13647.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benactyvrblrtf-29407.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benagefctr-12745.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benaplddpntcvgeligprflf-16468.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benasgnptnller-3790.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benasgnptnller-3231.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbandabsentitlement-24411.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbanddetails-14398.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbandentitlementdets-26291.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchactions-19307.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchactniteminfo-13698.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchbnftcertinfo-11639.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchcommuinfo-30998.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchdpntinfo-7152.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchelctblchcinfo-26581.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatcheliginfo-22703.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchheader-7431.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchlerinfo-14329.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchlines-14646.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchparameter-31345.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchprocinfo-13567.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchranges-23507.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbatchrateinfo-16387.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbenefitactions-26941.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbenefitqstnr-14787.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbenefitrelationsf-27890.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbenftsgrp-3300.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillcalendar-9358.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillcharges-29820.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillcharges-9612.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillchargedetails-25937.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillchargedetails-29200.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillchargepayments-27937.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillcomms-28385.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillcycle-20528.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillenrtrslt-23979.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillenrtrslt-30257.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillpayments-28208.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillpayments-21377.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbillpercredit-9511.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbnftsbalf-17441.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbnftcategory-16303.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbnftcategorytl-10628.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbnftrstrnctfnf-8708.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbnftvrblrtf-19891.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benbnftvrblrtrlf-15272.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencirmappingsf-15998.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benclpselfevt-3066.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benclpselfevtf-31058.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencmbnagelosfctr-24927.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencmbnplipf-14744.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencmbnptipf-13850.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencmbnptipoptf-20445.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencntngprtneligprfl-3723.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencntnuprtnctfntypf-14370.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencomplvlfctr-25796.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencompobjcache-17498.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencompobjcacherow-24997.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencrdtpoolspndrlvroptf-21482.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencrtordr-8531.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencrtordrcvrdper-16826.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencrtordrf-15890.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencrtordrf-28141.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencrtordrpldpnt-29910.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencrtordrpldpnt-6745.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencsractivities-17536.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencssrltdperperinler-15425.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benctfndocmap-8344.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencvgamtcalcmthdf-20808.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bencvrddpntctfnprvdd-8114.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendedschedpyfreq-26800.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendocsprvdddtls-26976.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendocimages-4396.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendpntcvgrqdrlshp-14470.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendpntcvrdanthroiplcvgf-7738.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendpntcvrdanthrplcvgf-12813.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendsgntrenrldcvg-3471.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendsgnrqmtf-17365.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bendsgnrqmtrlshptyp-7681.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelcnrules-25959.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelcnrulestl-24801.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelctblchcctfn-9217.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligycriteria-11042.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligycritvalues-8900.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligyprfl-24618.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligyprflrl-26088.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligageprte-25602.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliganthrplprte-20207.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligasntsetprte-22369.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligbenftsgrpprte-4424.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligbrgngunitprte-17931.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligbuprte-27494.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligcategory-10295.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligcbrqualdbnf-28066.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligcmbnagelosprte-26872.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligcomptncyprte-29578.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligcomplvlprte-27514.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligcvrddpnt-11220.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdpnt-19721.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdpntcvrdothroipl-23815.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdpntcvrdothrpgm-11586.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdpntcvrdothrpl-27269.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdpntcvrdothrptip-24125.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdpntcvrdplip-19155.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdpntothrptip-11675.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdsbldprte-6497.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdsbldstatprtef-11588.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdsbltyctgprte-24481.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdsbltydgrprte-24310.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligdsbltyrsnprte-30196.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligeestatprte-23294.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligenrldanthroipl-21654.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligenrldanthrpgm-8573.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligenrldanthrpl-24903.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligenrldanthrplip-24190.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligenrldanthrptip-20520.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligflxcrdtpoolchc-17610.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligfltmpttmprte-21050.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliggencritprte-30249.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliggndrprte-15138.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliggrdprte-15637.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelighierarchy-25206.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelighiredtprte-15945.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelighlthcvgprte-21262.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelighrlyslrdprte-22384.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelighrswkdprte-17214.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligjobfamprte-10145.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligjobfuncprte-4693.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligjobprte-25125.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliglbrmmbrprte-22207.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliglglentyprte-5433.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligloarsnprte-15977.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliglosprte-29144.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneliglvgrsnprte-10215.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligmgrprte-22911.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligmltrystatprte-3833.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligmrtlstsprte-14717.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benelignoothrcvgprte-24660.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligobjeligproflf-20124.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligobjf-13247.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligoptdmdcrprte-23394.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligorgunitprte-13161.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligothrptipprte-15435.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpctfltmprte-8847.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligperfrtngprte-18207.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligperelctblchc-9106.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligperf-14166.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligperoptf-31488.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpertypprte-12074.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligperwvpltypf-11098.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpoeprte-10725.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpplgrpprte-5944.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligprbtnperdprte-26804.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligprttanthrpgmf-6426.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligprttanthrplprte-15278.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpstlcdrrngprte-29147.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpstnprte-18841.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpyrlprte-9914.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligpybssprte-30576.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligqualtitlprte-26497.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligquaingrprte-28029.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligrsltf-9927.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligrsltf-22439.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligscheddhrsprte-16210.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligscrewtgf-18631.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligspclngprgprte-3757.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligstdntstatcvg-20260.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligsubcategory-9175.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligsupplroleprte-12202.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligsvcareaprte-8899.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligtbcouseprte-19459.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligtoprtersnf-8014.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligttlcvgvolprte-7652.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligttlprttprte-26828.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/beneligwklocprte-12441.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benenrtbnft-8983.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benenrtctfnf-11347.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benenrtenrldanthroiplf-9291.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benenrtenrldanthrplf-16078.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benenrtperd-15842.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benenrtperdforplf-14933.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benenrtrt-30898.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benentitlement-23242.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benentabsattendnstyps-21685.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractdetailsarch-30559.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractelements-24418.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractfiledetails-18974.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractlayout-12051.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractmapping-23492.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractrequest-5418.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractrequestarch-28137.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextractreqdetails-5760.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benextrainputvalues-31431.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benffeval-23183.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benffevalrslt-4029.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benflexcrdtldgr-25675.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bengapabsenceplans-19184.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bengapdailyabsences-30911.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bengapdurationsummary-19688.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/bengdorsvctyp-14197.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benglobaltransferdtls-26141.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benholidaycalendar-8583.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benholidaycalendardets-21792.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benhrswkdinperdfctr-27867.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benintegrationkeymap-29065.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benleersnf-17403.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benleersnrlf-4883.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlegaldisclaimer-3094.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlegentitydefaults-10980.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerbnftrstrnctfnf-12314.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerbnftrstrnf-29899.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgdpntcvgctfnf-5855.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgdpntcvgf-24820.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgoiplenrtf-29840.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgoiplenrtrlf-14582.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgpgmenrtf-4408.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgplipenrtf-10478.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgplipenrtrlf-22499.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgplnipenrtf-21083.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgplniprlf-5854.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerchgptipenrtf-24977.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerenrtctfnf-7787.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerf-10099.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerftl-30813.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerperinfocsler-18027.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+<url>
+  <loc>https://docs.oracle.com/en/cloud/saas/human-resources/oedmh/benlerpoplactntypf-26498.html</loc>
+  <lastmod>2026-02-17T05:02:33+00:00</lastmod>
+  <priority>0.00</priority>
+</url>
+
+
+</urlset>
