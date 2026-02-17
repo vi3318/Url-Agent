@@ -192,6 +192,8 @@ def print_summary(stats: dict, elapsed: float):
     print("📊 CRAWL COMPLETE")
     print("=" * 60)
     print(f"  Total pages crawled: {stats.get('pages_crawled', 0)}")
+    if stats.get('pages_skipped', 0) > 0:
+        print(f"  Pages skipped:       {stats.get('pages_skipped', 0)} (empty/cookie/loading)")
     print(f"  Failed pages:        {stats.get('pages_failed', 0)}")
     print(f"  Total time:          {elapsed:.1f}s")
     print(f"  Speed:               {stats.get('pages_per_second', 0):.2f} pages/sec")

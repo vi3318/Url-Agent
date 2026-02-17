@@ -146,6 +146,18 @@ class DeepCrawlConfig:
     deny_patterns: List[str] = field(default_factory=list)
     strip_all_queries: bool = False
 
+    # Built-in URL deny patterns — always applied to filter junk URLs
+    # These catch image viewers, attachments, non-English locale duplicates, etc.
+    builtin_deny_patterns: List[str] = field(default_factory=lambda: [
+        r'/viewer/attachment/',       # image/file viewer pages
+        r'/viewer/',                  # generic viewer pages
+        r'/(de-DE|fr-FR|ko-KR|ja-JP|zh-CN|zh-TW|pt-BR|es-ES|it-IT|nl-NL|ru-RU|pl-PL|sv-SE|da-DK|fi-FI|nb-NO|cs-CZ|hu-HU|ro-RO|tr-TR|th-TH|he-IL|ar-SA|id-ID|ms-MY|vi-VN|uk-UA|el-GR|bg-BG|hr-HR|sk-SK|sl-SI|lt-LT|lv-LV|et-EE)/',  # non-English locale variants
+    ])
+
+    # Minimum word count to accept a page into results
+    # Pages below this threshold are considered empty/junk
+    min_word_count: int = 10
+
 
 @dataclass  
 class DeepPageData:
@@ -162,6 +174,7 @@ class DeepPageData:
     depth: int = 0
     section_path: List[str] = field(default_factory=list)  # Hierarchy path like ["3 Absence Management", "Tables", "ANC_ABSENCE_AGREEMENTS_F"]
     word_count: int = 0
+    _skipped: bool = False  # True if page was empty/cookie-only (excluded from results)
     
     def to_dict(self) -> dict:
         return {
@@ -237,6 +250,12 @@ class DeepDocCrawler:
         self._playwright = None
         self._browser: Browser = None
         self._context: BrowserContext = None
+        
+        # FluidTopics content API resolver
+        # Populated on first page load when we detect a FluidTopics-powered
+        # site (ServiceNow docs, etc.).  Maps prettyUrl → (mapId, contentId).
+        self._ft_resolver: Dict[str, Tuple[str, str]] = {}  # url_path → (mapId, contentId)
+        self._ft_base_url: str = ''  # e.g. "https://www.servicenow.com/docs"
         
         # Progress
         self._progress_callback: Optional[Callable] = None
@@ -328,6 +347,224 @@ class DeepDocCrawler:
         self._expandables_clicked += result.meaningful_clicks
         return result.meaningful_clicks, result.hit_limit
     
+    # ------------------------------------------------------------------ #
+    #  Shadow DOM & API response content extraction                        #
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _extract_shadow_dom_text(page: Page) -> str:
+        """Recursively extract all visible text from shadow DOM trees.
+
+        Many modern SPA documentation sites (ServiceNow / FluidTopics,
+        Salesforce Lightning, etc.) render content inside Web Components
+        with closed or open shadow roots.  ``page.inner_text('body')``
+        only sees the light DOM — this helper reaches into every shadow
+        root and collects the text content.
+
+        Returns the concatenated text from all shadow roots, stripped of
+        style/script noise.
+        """
+        try:
+            text = page.evaluate(r"""
+                () => {
+                    const SKIP = new Set(['STYLE', 'SCRIPT', 'NOSCRIPT', 'SVG', 'IMG', 'BR', 'HR']);
+                    function collect(root, depth) {
+                        if (depth > 12) return '';
+                        let out = '';
+                        const nodes = root.childNodes || [];
+                        for (const n of nodes) {
+                            if (n.nodeType === Node.TEXT_NODE) {
+                                const t = n.textContent?.trim();
+                                if (t) out += t + ' ';
+                            } else if (n.nodeType === Node.ELEMENT_NODE) {
+                                if (SKIP.has(n.tagName)) continue;
+                                if (n.shadowRoot) out += collect(n.shadowRoot, depth + 1);
+                                out += collect(n, depth + 1);
+                            }
+                        }
+                        return out;
+                    }
+                    // Collect from shadow DOM only (main-body text is
+                    // already handled by the normal extractor)
+                    let result = '';
+                    document.querySelectorAll('*').forEach(el => {
+                        if (el.shadowRoot) {
+                            result += collect(el.shadowRoot, 0) + '\n';
+                        }
+                    });
+                    return result.trim();
+                }
+            """)
+            return text or ''
+        except Exception as e:
+            logger.debug(f"[SHADOW-DOM] Extraction failed: {e}")
+            return ''
+
+    @staticmethod
+    def _parse_intercepted_html(html: str) -> str:
+        """Parse intercepted HTML body into clean text."""
+        try:
+            soup = BeautifulSoup(html, _BS_PARSER)
+            # Remove scripts/styles
+            for tag in soup(['script', 'style', 'noscript']):
+                tag.decompose()
+            text = soup.get_text(separator=' ', strip=True)
+            # Collapse whitespace
+            text = re.sub(r'\n{3,}', '\n\n', text)
+            text = re.sub(r' {2,}', ' ', text)
+            return text
+        except Exception:
+            return ''
+
+    # ------------------------------------------------------------------ #
+    #  FluidTopics content resolver                                        #
+    # ------------------------------------------------------------------ #
+
+    def _ft_build_resolver(self, pages_json: dict, map_id: str, base_url: str) -> None:
+        """Build a prettyUrl → (mapId, contentId) mapping from FluidTopics pages API.
+
+        Called when we intercept the ``/api/khub/maps/{mapId}/pages`` response.
+        The resulting resolver lets us fetch topic content directly via HTTP
+        for pages where the SPA doesn't render.
+        """
+        self._ft_base_url = base_url.rstrip('/')
+
+        def _walk(node: dict) -> None:
+            pretty = node.get('prettyUrl', '')
+            content_id = node.get('contentId', '')
+            if pretty and content_id:
+                self._ft_resolver[pretty] = (map_id, content_id)
+            for child in node.get('children', []):
+                _walk(child)
+            for child in node.get('pageToc', []):
+                _walk(child)
+
+        # paginatedToc is the top-level list of root pages
+        for root in pages_json.get('paginatedToc', []):
+            _walk(root)
+
+        logger.info(
+            f"[FT-RESOLVER] Built URL→content map: "
+            f"{len(self._ft_resolver)} topics from map {map_id}"
+        )
+
+    def _ft_fetch_content(self, url: str) -> str:
+        """Fetch topic content from FluidTopics API for the given page URL.
+
+        Returns raw HTML or empty string if not resolvable.
+        """
+        if not self._ft_resolver:
+            return ''
+
+        # Extract the /r/... path portion from the URL
+        parsed = urlparse(url)
+        path = parsed.path  # e.g. /docs/r/it-asset-management/.../page.html
+
+        # Try the path directly, then strip /docs prefix
+        for candidate in [path, re.sub(r'^/docs', '', path)]:
+            if candidate in self._ft_resolver:
+                map_id, content_id = self._ft_resolver[candidate]
+                api_url = (
+                    f"{self._ft_base_url}/api/khub/maps/{map_id}"
+                    f"/topics/{content_id}/content"
+                )
+                try:
+                    resp = requests.get(api_url, timeout=10)
+                    if resp.status_code == 200 and len(resp.text) > 100:
+                        logger.info(
+                            f"[FT-FETCH] Got {len(resp.text):,} bytes "
+                            f"for {candidate[:60]}"
+                        )
+                        return resp.text
+                except Exception as e:
+                    logger.debug(f"[FT-FETCH] Error for {candidate}: {e}")
+                break
+
+        return ''
+
+    def _dismiss_cookie_consent(self, page: Page) -> None:
+        """Try to dismiss cookie consent banners that block content."""
+        consent_selectors = [
+            # Common consent button patterns
+            'button:has-text("Accept")',
+            'button:has-text("Accept and Proceed")',
+            'button:has-text("Accept All")',
+            'button:has-text("Accept Cookies")',
+            'button:has-text("I Accept")',
+            'button:has-text("Agree")',
+            'button:has-text("OK")',
+            'button:has-text("Got it")',
+            'button:has-text("Allow All")',
+            # Common class/id patterns
+            '#onetrust-accept-btn-handler',
+            '.cookie-accept',
+            '.cc-accept',
+            '[data-testid="cookie-accept"]',
+            '.consent-accept',
+            '#cookie-accept',
+            '#accept-cookies',
+            '.js-accept-cookies',
+        ]
+        for selector in consent_selectors:
+            try:
+                btn = page.query_selector(selector)
+                if btn and btn.is_visible():
+                    btn.click(timeout=2000)
+                    logger.debug(f"[COOKIE] Dismissed consent banner via: {selector}")
+                    page.wait_for_timeout(500)
+                    return
+            except Exception:
+                continue
+
+    def _wait_for_spa_content(self, page: Page) -> None:
+        """Wait for SPA content to load if we detect a loading placeholder.
+
+        Checks if the visible text is just a loading message or cookie banner,
+        and if so, waits up to 10 additional seconds for real content to appear.
+        """
+        try:
+            body_text = page.evaluate("""
+                () => (document.body?.innerText || '').trim().substring(0, 500)
+            """)
+            # Detect loading/placeholder patterns
+            loading_patterns = [
+                'loading application',
+                'loading...',
+                'please wait',
+                'initializing',
+                'just a moment',
+            ]
+            is_loading = any(pat in body_text.lower() for pat in loading_patterns)
+            is_mostly_cookie = (
+                'cookie' in body_text.lower()
+                and len(body_text) < 600
+                and 'accept' in body_text.lower()
+            )
+
+            if is_loading or is_mostly_cookie:
+                logger.info(f"[SPA-WAIT] Detected loading/placeholder — waiting for real content...")
+                # Wait for content selectors to appear
+                content_appeared = False
+                for selector in ['main', 'article', '.content', '#content', '[role="main"]',
+                                 '.documentation', '.doc-content', '.markdown-section']:
+                    try:
+                        page.wait_for_selector(selector, timeout=8000, state='attached')
+                        content_appeared = True
+                        logger.debug(f"[SPA-WAIT] Content appeared via: {selector}")
+                        break
+                    except PlaywrightTimeout:
+                        continue
+
+                if not content_appeared:
+                    # Fallback: just wait and hope
+                    page.wait_for_timeout(5000)
+                    logger.debug("[SPA-WAIT] No content selector appeared, waited 5s")
+                else:
+                    # Give a bit more time for content to render
+                    page.wait_for_timeout(1500)
+        except Exception as e:
+            logger.debug(f"[SPA-WAIT] Error: {e}")
+
     def _detect_page_complexity(self, page: Page) -> str:
         """Auto-detect whether a page needs JS expansion or is simple HTML.
 
@@ -416,6 +653,15 @@ class DeepDocCrawler:
         rejected_scope = 0
         rejected_nonhttp = 0
         rejected_dedup = 0
+        rejected_junk = 0
+
+        # Compile built-in deny patterns for junk URL filtering
+        junk_patterns = []
+        for pat in self.config.builtin_deny_patterns:
+            try:
+                junk_patterns.append(re.compile(pat, re.IGNORECASE))
+            except re.error:
+                pass
         
         for selector in self.config.link_selectors:
             try:
@@ -452,6 +698,11 @@ class DeepDocCrawler:
                             rejected_normalize += 1
                             continue
 
+                        # Junk URL filter — viewer, attachment, locale variants
+                        if any(rx.search(normalized) for rx in junk_patterns):
+                            rejected_junk += 1
+                            continue
+
                         # Scope gate — reject outside-subtree links here,
                         # before they ever reach the BFS queue
                         if self._scope_filter and not self._scope_filter.accept(normalized):
@@ -478,6 +729,7 @@ class DeepDocCrawler:
             f"nonhttp={rejected_nonhttp} "
             f"bad_normalize={rejected_normalize} "
             f"scope_rejected={rejected_scope} "
+            f"junk_filtered={rejected_junk} "
             f"dedup={rejected_dedup}"
         )
         return list(links)
@@ -565,8 +817,19 @@ class DeepDocCrawler:
         
         return path
     
-    def _extract_content(self, page: Page) -> Dict[str, Any]:
-        """Extract main content from the page."""
+    def _extract_content(
+        self,
+        page: Page,
+        intercepted_html: str = '',
+        page_url: str = '',
+    ) -> Dict[str, Any]:
+        """Extract main content from the page.
+
+        Extraction strategy (in order of preference):
+        1. Normal DOM extraction (light DOM content selectors)
+        2. Shadow DOM recursive text extraction (Web Components)
+        3. Intercepted API response HTML (FluidTopics, etc.)
+        """
         content = {
             'title': '',
             'headings': {},
@@ -667,6 +930,141 @@ class DeepDocCrawler:
             except Exception:
                 pass
         
+        # ── Fallback 1: Shadow DOM text extraction ──────────────────
+        # If the normal DOM extraction returned little/no content,
+        # try recursively extracting from shadow roots (Web Components).
+        dom_word_count = len(content['text'].split())
+        if dom_word_count < self.config.min_word_count:
+            shadow_text = self._extract_shadow_dom_text(page)
+            shadow_words = len(shadow_text.split())
+            if shadow_words > dom_word_count and shadow_words >= self.config.min_word_count:
+                logger.info(
+                    f"[SHADOW-DOM] Using shadow DOM text: {shadow_words:,} words "
+                    f"(light DOM had {dom_word_count})"
+                )
+                content['text'] = shadow_text
+
+        # ── Fallback 2: Intercepted API response ────────────────────
+        # Many SPA doc sites (FluidTopics / ServiceNow, etc.) fetch the
+        # real page content via an internal API and render it inside
+        # shadow DOM or Web Components that may not fully hydrate in
+        # headless mode.  If we captured a content-rich HTML response
+        # during page load, prefer it when it has substantially more
+        # text than what DOM + shadow-DOM extraction produced.
+        current_word_count = len(content['text'].split())
+        if intercepted_html:
+            api_text = self._parse_intercepted_html(intercepted_html)
+            api_words = len(api_text.split())
+            # Use API content if:
+            #   a) current content is below threshold AND API has enough, OR
+            #   b) API content is ≥3× richer (i.e. DOM/shadow got nav junk)
+            use_api = (
+                (current_word_count < self.config.min_word_count
+                 and api_words >= self.config.min_word_count)
+                or (api_words >= 3 * max(current_word_count, 1))
+            )
+            if use_api:
+                logger.info(
+                    f"[API-CONTENT] Using intercepted API response: "
+                    f"{api_words:,} words (DOM/shadow had {current_word_count})"
+                )
+                content['text'] = api_text
+                # Also extract structured data from the API HTML
+                try:
+                    soup = BeautifulSoup(intercepted_html, _BS_PARSER)
+                    # Title
+                    if not content['title'] or content['title'] == page.url:
+                        h1 = soup.find('h1')
+                        if h1:
+                            content['title'] = h1.get_text(strip=True)
+                    # Headings
+                    for level in range(1, 7):
+                        hs = soup.find_all(f'h{level}')
+                        if hs:
+                            content['headings'][f'h{level}'] = [
+                                h.get_text(strip=True) for h in hs
+                                if h.get_text(strip=True)
+                            ]
+                    # Tables
+                    if not content['tables']:
+                        for table in soup.find_all('table'):
+                            table_data = {'headers': [], 'rows': []}
+                            for th in table.find_all('th'):
+                                table_data['headers'].append(th.get_text(strip=True))
+                            for tr in table.find_all('tr'):
+                                cells = tr.find_all('td')
+                                if cells:
+                                    table_data['rows'].append(
+                                        [c.get_text(strip=True) for c in cells]
+                                    )
+                            if table_data['headers'] or table_data['rows']:
+                                content['tables'].append(table_data)
+                    # Code blocks
+                    if not content['code_blocks']:
+                        for block in soup.find_all(['pre', 'code']):
+                            code_text = block.get_text(strip=True)
+                            if code_text and len(code_text) > 10:
+                                content['code_blocks'].append(code_text)
+                except Exception:
+                    pass
+        
+        # ── Fallback 3: FluidTopics direct content fetch ────────────
+        # If we detected a FluidTopics-powered site (resolver built from
+        # /api/khub/maps/.../pages), fetch topic content directly via
+        # HTTP using the URL→contentId mapping.  Always try when the
+        # resolver is available and current content is thin (<300 words),
+        # since shadow-DOM extraction often captures only nav/header text.
+        current_word_count = len(content['text'].split())
+        if self._ft_resolver and current_word_count < 300:
+            ft_html = self._ft_fetch_content(page_url or page.url)
+            if ft_html:
+                ft_text = self._parse_intercepted_html(ft_html)
+                ft_words = len(ft_text.split())
+                use_ft = (
+                    ft_words >= self.config.min_word_count
+                    and ft_words > current_word_count
+                )
+                if use_ft:
+                    logger.info(
+                        f"[FT-FETCH] Using FluidTopics API content: "
+                        f"{ft_words:,} words (previous had {current_word_count})"
+                    )
+                    content['text'] = ft_text
+                    # Extract structured data from FT HTML
+                    try:
+                        soup = BeautifulSoup(ft_html, _BS_PARSER)
+                        if not content['title']:
+                            h1 = soup.find('h1')
+                            if h1:
+                                content['title'] = h1.get_text(strip=True)
+                        for level in range(1, 7):
+                            hs = soup.find_all(f'h{level}')
+                            if hs:
+                                content['headings'][f'h{level}'] = [
+                                    h.get_text(strip=True) for h in hs
+                                    if h.get_text(strip=True)
+                                ]
+                        if not content['tables']:
+                            for table in soup.find_all('table'):
+                                td = {'headers': [], 'rows': []}
+                                for th in table.find_all('th'):
+                                    td['headers'].append(th.get_text(strip=True))
+                                for tr in table.find_all('tr'):
+                                    cells = tr.find_all('td')
+                                    if cells:
+                                        td['rows'].append(
+                                            [c.get_text(strip=True) for c in cells]
+                                        )
+                                if td['headers'] or td['rows']:
+                                    content['tables'].append(td)
+                        if not content['code_blocks']:
+                            for block in soup.find_all(['pre', 'code']):
+                                code_text = block.get_text(strip=True)
+                                if code_text and len(code_text) > 10:
+                                    content['code_blocks'].append(code_text)
+                    except Exception:
+                        pass
+
         # Per-page scrape summary
         heading_count = sum(len(v) for v in content['headings'].values())
         text_len = len(content['text'])
@@ -723,6 +1121,60 @@ class DeepDocCrawler:
             # Create new page
             page = self._context.new_page()
             
+            # ── Response interception for SPA content APIs ──────────
+            # Web-component SPAs (FluidTopics, etc.) often fetch page
+            # content via internal APIs (JSON-wrapped HTML, or raw HTML)
+            # then render it inside shadow DOM — invisible to normal
+            # DOM extraction.  We capture the largest HTML-bearing
+            # response so we can fall back to it.
+            #
+            # We also detect FluidTopics sites and build a URL→content
+            # resolver from the /api/khub/maps/{id}/pages response.
+            _intercepted = {'html': '', 'size': 0}
+            _self = self  # capture for closure
+
+            def _on_response(resp):
+                try:
+                    ct = resp.headers.get('content-type', '')
+                    rurl = resp.url
+                    url_lower = rurl.lower()
+
+                    # 1. Capture largest HTML response from content APIs
+                    if (
+                        'text/html' in ct
+                        and '/api/' in url_lower
+                        and resp.status == 200
+                    ):
+                        body = resp.text()
+                        if len(body) > _intercepted['size']:
+                            _intercepted['html'] = body
+                            _intercepted['size'] = len(body)
+
+                    # 2. Detect FluidTopics pages API and build resolver
+                    #    Pattern: /api/khub/maps/{mapId}/pages
+                    if (
+                        'application/json' in ct
+                        and resp.status == 200
+                        and '/api/khub/maps/' in rurl
+                        and '/pages' in rurl
+                        and not _self._ft_resolver
+                    ):
+                        import re as _re
+                        m = _re.search(r'/api/khub/maps/([^/]+)/pages', rurl)
+                        if m:
+                            map_id = m.group(1)
+                            parsed_origin = urlparse(rurl)
+                            ft_base = f"{parsed_origin.scheme}://{parsed_origin.netloc}/docs"
+                            try:
+                                body = resp.json()
+                                _self._ft_build_resolver(body, map_id, ft_base)
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
+
+            page.on('response', _on_response)
+            
             try:
                 # Navigate to URL
                 response = page.goto(
@@ -753,6 +1205,17 @@ class DeepDocCrawler:
                 
                 # Brief stabilization wait
                 page.wait_for_timeout(1000)
+                
+                # ── Dismiss cookie consent banners ───────────────
+                # Many sites (ServiceNow, etc.) block content behind
+                # cookie consent overlays.  Click common accept buttons.
+                self._dismiss_cookie_consent(page)
+                
+                # ── Wait for SPA content to load ────────────────
+                # Sites like ServiceNow render via heavy JS frameworks.
+                # If we detect "Loading" placeholder text, wait longer
+                # for the real content to appear.
+                self._wait_for_spa_content(page)
                 
                 # ── Redirect detection: widen scope if needed ───────
                 # If Playwright followed a redirect (JS/server), the landing
@@ -801,8 +1264,12 @@ class DeepDocCrawler:
                 if expanded > 0:
                     page.wait_for_timeout(500)
                 
-                # Extract content
-                content = self._extract_content(page)
+                # Extract content (pass intercepted API HTML for fallback)
+                content = self._extract_content(
+                    page,
+                    intercepted_html=_intercepted['html'],
+                    page_url=normalized_url,
+                )
                 
                 # Extract links — skip heavy extraction when queue is already
                 # larger than max_pages (sidebar links are the same on every
@@ -841,6 +1308,30 @@ class DeepDocCrawler:
                     f"{len(links)} links, "
                     f"depth={depth}"
                 )
+                
+                # ── Content quality gate ────────────────────────────
+                # Skip pages that are empty, just cookie banners, or
+                # "Loading application..." SPA placeholders.
+                if page_data.word_count < self.config.min_word_count:
+                    # Check if it's a loading / cookie-only page
+                    text_lower = page_data.text_content.lower()
+                    is_junk = (
+                        'loading application' in text_lower
+                        or ('cookie' in text_lower and page_data.word_count < 100)
+                        or page_data.word_count == 0
+                    )
+                    if is_junk:
+                        logger.warning(
+                            f"[SKIP] {normalized_url[:70]} — "
+                            f"empty/loading/cookie page ({page_data.word_count} words)"
+                        )
+                        # Still return links so the frontier keeps growing,
+                        # but mark page as skipped so it's not counted
+                        # toward the page limit
+                        page_data.text_content = ""
+                        page_data.word_count = 0
+                        page_data._skipped = True
+                        return page_data
                 
                 # Progress callback
                 if self._progress_callback:
@@ -1066,8 +1557,9 @@ class DeepDocCrawler:
             self._queued_urls.add(start_url)
             
             while queue and not self._stop_requested:
-                # Check page limit
-                if len(self._pages) >= self.config.max_pages:
+                # Check page limit (only count non-skipped pages)
+                good_count = sum(1 for p in self._pages if not getattr(p, '_skipped', False))
+                if good_count >= self.config.max_pages:
                     stop_reason = f"MAX_PAGES limit reached ({self.config.max_pages})"
                     logger.info(f"STOPPING: {stop_reason}")
                     break
@@ -1081,7 +1573,7 @@ class DeepDocCrawler:
                 
                 # Log progress
                 elapsed = time.time() - self._start_time
-                logger.info(f"[{len(self._pages)+1}/{self.config.max_pages}] Depth:{depth} | {elapsed:.1f}s | Queue:{len(queue)} | {url[:80]}...")
+                logger.info(f"[{good_count+1}/{self.config.max_pages}] Depth:{depth} | {elapsed:.1f}s | Queue:{len(queue)} | {url[:80]}...")
                 
                 # Crawl page
                 page_data = self._crawl_page(url, depth, parent_url, section_path, start_url)
@@ -1181,15 +1673,20 @@ class DeepDocCrawler:
         finally:
             self._close_browser()
         
+        # Filter out skipped (empty/cookie) pages from final results
+        good_pages = [p for p in self._pages if not getattr(p, '_skipped', False)]
+        skipped_count = len(self._pages) - len(good_pages)
+        
         # Build stats
         elapsed = time.time() - self._start_time
         stats = {
-            'pages_crawled': len(self._pages),
+            'pages_crawled': len(good_pages),
+            'pages_skipped': skipped_count,
             'pages_failed': len(self._errors),
             'expandables_clicked': self._expandables_clicked,
             'links_discovered': self._links_discovered,
             'elapsed_time': round(elapsed, 2),
-            'pages_per_second': round(len(self._pages) / elapsed, 2) if elapsed > 0 else 0,
+            'pages_per_second': round(len(good_pages) / elapsed, 2) if elapsed > 0 else 0,
             'stop_reason': stop_reason,
             'scope': scope_desc,
         }
@@ -1197,6 +1694,7 @@ class DeepDocCrawler:
         logger.info("=" * 60)
         logger.info(f"DEEP CRAWL COMPLETE")
         logger.info(f"Pages crawled: {stats['pages_crawled']}")
+        logger.info(f"Pages skipped (empty/cookie): {stats['pages_skipped']}")
         logger.info(f"Pages failed: {stats['pages_failed']}")
         logger.info(f"Expandables clicked: {stats['expandables_clicked']}")
         logger.info(f"Elapsed time: {stats['elapsed_time']}s")
@@ -1204,7 +1702,7 @@ class DeepDocCrawler:
         logger.info("=" * 60)
         
         return DeepCrawlResult(
-            pages=self._pages.copy(),
+            pages=good_pages,
             stats=stats,
             errors=self._errors.copy(),
             hierarchy=self._build_hierarchy()
