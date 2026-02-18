@@ -49,6 +49,17 @@ from .monitor import PerformanceMonitor, PageTiming, CrawlMetrics
 from .rag_model import RAGCorpus, RAGDocument
 from .pipeline import transform_page, PipelineConfig
 from . import interaction_policy
+from .auth.session_manager import AuthConfig, SessionManager
+from .auth.session_store import SessionStore
+from .sap_extractor import (
+    detect_sap_ui5,
+    wait_for_ui5_ready,
+    scroll_virtual_table,
+    scroll_page_for_content,
+    extract_sap_tables,
+    detect_sap_session_expiry,
+    get_sap_content_selectors,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +183,18 @@ class AsyncCrawlConfig:
         r'/viewer/attachment/',
         r'/viewer/',
         r'/(de-DE|fr-FR|ko-KR|ja-JP|zh-CN|zh-TW|pt-BR|es-ES|it-IT|nl-NL|ru-RU|pl-PL|sv-SE|da-DK|fi-FI|nb-NO|cs-CZ|hu-HU|ro-RO|tr-TR|th-TH|he-IL|ar-SA|id-ID|ms-MY|vi-VN|uk-UA|el-GR|bg-BG|hr-HR|sk-SK|sl-SI|lt-LT|lv-LV|et-EE)/',
+        # Skip API/JSON/data endpoints
+        r'/json$',
+        r'/json\?',
+        r'\.json$',
+        r'/api/',
+        r'/rest/',
+        r'/graphql',
+        r'/odata/',
+        r'\.xml$',
+        r'\.pdf$',
+        r'\.zip$',
+        r'\.csv$',
     ])
 
     # Content quality
@@ -182,6 +205,17 @@ class AsyncCrawlConfig:
 
     # RAG pipeline
     pipeline_config: PipelineConfig = field(default_factory=PipelineConfig)
+
+    # Authentication
+    auth_config: Optional[AuthConfig] = None
+
+    # New modular auth (preferred over auth_config)
+    session_store: Optional[SessionStore] = None
+
+    # ── Enterprise stability ────────────────────────────────────────
+    max_retries_per_page: int = 2           # retry failed pages up to N times
+    screenshot_on_failure: bool = False     # save debug screenshot on page failure
+    humanized_delay: bool = False           # add random jitter to delays
 
 
 # ---------------------------------------------------------------------------
@@ -281,6 +315,20 @@ class AsyncDocCrawler:
         self._ft_resolver: Dict[str, Tuple[str, str]] = {}
         self._ft_base_url: str = ''
 
+        # Authentication — new modular system (preferred) + legacy fallback
+        self._session_store: Optional[SessionStore] = self.config.session_store
+        self._session_manager: Optional[SessionManager] = None
+        if not self._session_store:
+            # Legacy path: build SessionManager from AuthConfig
+            if self.config.auth_config and self.config.auth_config.is_configured:
+                self._session_manager = SessionManager(self.config.auth_config)
+
+        # Retry tracking (enterprise stability)
+        self._retry_counts: Dict[str, int] = {}
+
+        # Near-duplicate detection (content fingerprints)
+        self._content_fingerprints: Dict[str, str] = {}  # fingerprint → first URL
+
         # Async primitives
         self._queue: Optional[asyncio.Queue] = None
         self._semaphore: Optional[asyncio.Semaphore] = None
@@ -333,6 +381,8 @@ class AsyncDocCrawler:
         self._scope_rejected_buffer.clear()
         self._stop_requested = False
         self._expandables_clicked = 0
+        self._retry_counts.clear()
+        self._content_fingerprints.clear()
         self._ft_resolver.clear()
         self._ft_base_url = ''
 
@@ -359,6 +409,16 @@ class AsyncDocCrawler:
         # Initialize async primitives
         self._queue = asyncio.Queue(maxsize=self.config.queue_maxsize)
         self._semaphore = asyncio.Semaphore(self.config.max_workers)
+
+        # For SAP SAML: set the portal_url so login starts from the target
+        # portal (triggers SAML redirect), not just the IdP.
+        if (self.config.auth_config
+                and self.config.auth_config.login_strategy == 'sap_saml'
+                and not self.config.auth_config.portal_url):
+            self.config.auth_config.portal_url = start_url
+
+        # Store start_url for auth context creation
+        self._start_url = start_url
 
         # Start browser
         await self._init_browser()
@@ -387,18 +447,36 @@ class AsyncDocCrawler:
                 if good_count >= self.config.max_pages:
                     stop_reason = f"MAX_PAGES limit reached ({self.config.max_pages})"
                 else:
-                    stop_reason = "Queue exhausted (all reachable pages crawled)"
+                    skipped = len(self._pages) - good_count
+                    stop_reason = (
+                        f"Queue exhausted — only {good_count} useful pages "
+                        f"found on this site (skipped {skipped}, "
+                        f"requested {self.config.max_pages})"
+                    )
 
         except Exception as e:
             stop_reason = f"Error: {e}"
             logger.error(f"Crawl error: {e}", exc_info=True)
         finally:
-            # Cancel workers
+            # Signal all workers to stop, then cancel and suppress stale futures
+            self._stop_requested = True
             for w in workers:
                 w.cancel()
+            # Gather with return_exceptions to silence "Future exception was never retrieved"
             await asyncio.gather(*workers, return_exceptions=True)
 
+            # Drain any remaining queue items to unblock stuck workers
+            while not self._queue.empty():
+                try:
+                    self._queue.get_nowait()
+                    self._queue.task_done()
+                except asyncio.QueueEmpty:
+                    break
+
             await self.monitor.stop(stop_reason)
+            # Brief settle time to let in-flight Playwright futures resolve
+            # before we close the browser (prevents "Future exception never retrieved")
+            await asyncio.sleep(0.5)
             await self._close_browser()
 
         # Filter skipped pages
@@ -514,6 +592,28 @@ class AsyncDocCrawler:
                         page_result = await self._crawl_page(
                             url, depth, parent_url, section_path
                         )
+
+                        # ── Retry on failure (enterprise stability) ─────
+                        if page_result is None and self.config.max_retries_per_page > 0:
+                            retry_key = url
+                            retries = self._retry_counts.get(retry_key, 0)
+                            if retries < self.config.max_retries_per_page:
+                                self._retry_counts[retry_key] = retries + 1
+                                logger.info(
+                                    f"[RETRY] {url[:60]} — "
+                                    f"attempt {retries + 1}/{self.config.max_retries_per_page}"
+                                )
+                                await self.monitor.record_retry()
+                                # Remove from visited so retry can proceed
+                                async with self._visited_lock:
+                                    self._visited.discard(
+                                        self.url_normalizer.normalize(url) or url
+                                    )
+                                # Brief backoff before retry
+                                await asyncio.sleep(1.0 + retries * 2.0)
+                                page_result = await self._crawl_page(
+                                    url, depth, parent_url, section_path
+                                )
                     finally:
                         await self.monitor.worker_finished()
 
@@ -521,13 +621,19 @@ class AsyncDocCrawler:
                     async with self._pages_lock:
                         self._pages.append(page_result)
 
-                    # Enqueue discovered links
-                    if depth < self.config.max_depth and not page_result.skipped:
-                        await self._enqueue_links(page_result, depth)
+                    # Enqueue discovered links (including from skipped pages
+                    # that still discovered navigation links).
+                    if depth < self.config.max_depth:
+                        if not page_result.skipped or page_result.internal_links:
+                            await self._enqueue_links(page_result, depth)
 
-                    # Rate limit
+                    # Rate limit (with optional humanized jitter)
                     if self.config.delay_between_pages > 0:
-                        await asyncio.sleep(self.config.delay_between_pages)
+                        delay = self.config.delay_between_pages
+                        if self.config.humanized_delay:
+                            import random
+                            delay += random.uniform(0.1, 0.8)
+                        await asyncio.sleep(delay)
 
                 self._queue.task_done()
 
@@ -593,7 +699,8 @@ class AsyncDocCrawler:
                 '--no-first-run',
             ]
         )
-        self._context = await self._browser.new_context(
+        # Determine context creation kwargs
+        ctx_kwargs = dict(
             user_agent=self.config.user_agent,
             viewport={
                 'width': self.config.viewport_width,
@@ -603,12 +710,38 @@ class AsyncDocCrawler:
             timezone_id='America/New_York',
         )
 
+        # ── Authentication: new modular system (preferred) → legacy fallback
+        has_auth = False
+        if self._session_store:
+            try:
+                self._context = await self._session_store.get_authenticated_context(
+                    self._browser,
+                    portal_url=getattr(self, '_start_url', ''),
+                    **ctx_kwargs,
+                )
+                has_auth = True
+            except Exception as e:
+                logger.error(f"[AUTH] SessionStore setup failed: {e} — falling back")
+                self._context = await self._browser.new_context(**ctx_kwargs)
+        elif self._session_manager:
+            try:
+                self._context = await self._session_manager.apply_session(
+                    self._browser, **ctx_kwargs
+                )
+                has_auth = True
+            except Exception as e:
+                logger.error(f"[AUTH] Session setup failed: {e} — falling back to unauthenticated")
+                self._context = await self._browser.new_context(**ctx_kwargs)
+        else:
+            self._context = await self._browser.new_context(**ctx_kwargs)
+
         # Set up route-based resource blocking
         if self.config.block_images or self.config.block_fonts or self.config.block_media:
             await self._context.route("**/*", self._route_handler)
 
+        auth_label = " + AUTH" if has_auth else ""
         logger.info(
-            f"Async Playwright browser initialized "
+            f"Async Playwright browser initialized{auth_label} "
             f"(workers={self.config.max_workers}, "
             f"blocking={'images,fonts,media,analytics' if self.config.block_images else 'none'})"
         )
@@ -635,8 +768,37 @@ class AsyncDocCrawler:
 
     async def _close_browser(self) -> None:
         """Close browser and Playwright."""
+        # Temporarily suppress "Future exception was never retrieved" messages
+        # during shutdown — these come from in-flight Playwright navigations
+        # that get aborted when we close the browser context.
+        loop = asyncio.get_event_loop()
+        original_handler = loop.get_exception_handler()
+
+        def _suppress_target_closed(loop, context):
+            msg = context.get('message', '')
+            exc = context.get('exception')
+            if exc and ('TargetClosedError' in type(exc).__name__
+                        or 'ERR_ABORTED' in str(exc)
+                        or 'closed' in str(exc).lower()):
+                return  # Suppress — expected during shutdown
+            if 'Future exception was never retrieved' in msg:
+                return
+            # Fall through to original handler for real errors
+            if original_handler:
+                original_handler(loop, context)
+            else:
+                loop.default_exception_handler(context)
+
+        loop.set_exception_handler(_suppress_target_closed)
+
         if self._context:
             try:
+                # Close all open pages first to prevent stale navigation futures
+                for p in self._context.pages:
+                    try:
+                        await p.close()
+                    except Exception:
+                        pass
                 await self._context.close()
             except Exception:
                 pass
@@ -653,6 +815,26 @@ class AsyncDocCrawler:
             except Exception:
                 pass
             self._playwright = None
+
+        # Give event loop a chance to process any remaining stale futures
+        # before restoring the original handler
+        await asyncio.sleep(0.3)
+
+        # Restore original exception handler
+        loop.set_exception_handler(original_handler)
+
+    async def _save_debug_screenshot(
+        self, page: Page, url: str, reason: str
+    ) -> None:
+        """Save a debug screenshot on page failure (enterprise stability)."""
+        try:
+            import re as _re
+            safe_name = _re.sub(r'[^\w\-.]', '_', url.split('/')[-1] or 'page')[:60]
+            path = f"debug_{reason}_{safe_name}.png"
+            await page.screenshot(path=path, full_page=False)
+            logger.info(f"[SCREENSHOT] Debug screenshot saved: {path}")
+        except Exception as e:
+            logger.debug(f"[SCREENSHOT] Failed: {e}")
 
     # ------------------------------------------------------------------
     # Page crawling
@@ -747,6 +929,23 @@ class AsyncDocCrawler:
                 })
                 return None
 
+            # ── Skip non-HTML responses (JSON API, XML, binary, etc.) ──
+            resp_ct = (response.headers.get('content-type') or '').lower()
+            if resp_ct and not any(h in resp_ct for h in ('text/html', 'text/plain', 'application/xhtml')):
+                logger.info(
+                    f"[SKIP] {normalized[:70]} — non-HTML response "
+                    f"(content-type: {resp_ct.split(';')[0]})"
+                )
+                timing.status = "skipped"
+                timing.total_ms = (time.monotonic() - t_start) * 1000
+                await self.monitor.record_page(timing)
+                return _PageResult(
+                    url=normalized, title='', breadcrumb=[], section_path=[],
+                    headings={}, text_content='', tables=[], code_blocks=[],
+                    internal_links=[], parent_url=parent_url, depth=depth,
+                    word_count=0, skipped=True,
+                )
+
             # Wait for network to settle — many doc sites (Oracle, etc.)
             # load navigation trees via RequireJS *after* DOMContentLoaded.
             try:
@@ -754,12 +953,83 @@ class AsyncDocCrawler:
             except PlaywrightTimeout:
                 pass
 
+            # ── Session expiry detection & re-login ─────────────────
+            expired = False
+            if self._session_store:
+                expired = await self._session_store.detect_expired(
+                    page, intended_url=normalized
+                )
+                if not expired:
+                    expired = await detect_sap_session_expiry(
+                        page, intended_url=normalized
+                    )
+            elif self._session_manager:
+                expired = await self._session_manager.detect_session_expired(
+                    page, intended_url=normalized
+                )
+                # Also check SAP-specific session expiry patterns
+                if not expired:
+                    expired = await detect_sap_session_expiry(
+                        page, intended_url=normalized
+                    )
+
+            if expired:
+                logger.warning("[AUTH] Session expired — re-authenticating...")
+                try:
+                    if self._session_store:
+                        refreshed = await self._session_store.refresh_session(
+                            self._context,
+                            portal_url=getattr(self, '_start_url', ''),
+                        )
+                    else:
+                        refreshed = await self._session_manager.refresh_session(
+                            self._context
+                        )
+                    if refreshed:
+                        logger.info("[AUTH] Session refreshed — retrying page")
+                        response = await page.goto(
+                            normalized,
+                            timeout=self.config.timeout,
+                            wait_until='load',
+                        )
+                        try:
+                            await page.wait_for_load_state(
+                                'networkidle', timeout=5000
+                            )
+                        except PlaywrightTimeout:
+                            pass
+                    else:
+                        logger.error("[AUTH] Session refresh failed — skipping page")
+                        return None
+                except Exception as e:
+                    logger.error(f"[AUTH] Re-login error: {e}")
+                    return None
+
             # ── FluidTopics (GWT SPA) detection & wait ──────────────
             # ServiceNow docs, etc. use FluidTopics which needs extra
             # time for the GWT bootstrap to fetch + render content.
             is_ft = await self._detect_fluidtopics(page)
             if is_ft:
                 await self._wait_for_fluidtopics(page)
+
+            # ── SAP UI5 / Fiori detection & wait ────────────────────
+            is_sap_ui5 = await detect_sap_ui5(page)
+            if is_sap_ui5:
+                logger.info(f"[SAP-UI5] Detected UI5/Fiori page: {normalized[:60]}")
+                await wait_for_ui5_ready(page, timeout_ms=self.config.timeout)
+
+                # Extra wait for SAP for Me SPA rendering (JS-heavy)
+                await asyncio.sleep(2.0)
+
+                # Scroll virtual tables to render all rows
+                table_rows = await scroll_virtual_table(page)
+                if table_rows > 0:
+                    logger.info(
+                        f"[SAP-UI5] Virtual table: {table_rows} rows rendered"
+                    )
+
+                # Also scroll page for lazy-loaded content
+                await scroll_page_for_content(page, max_scrolls=15)
 
             # Link stabilization: poll until <a href> count stops changing.
             # Oracle, ServiceNow, and other JS-heavy sites render nav links
@@ -799,16 +1069,60 @@ class AsyncDocCrawler:
             # Auto-detect page complexity
             page_type = await self._detect_page_complexity(page)
 
-            # Skip expansion when queue is large
+            # Skip expansion when queue is large, for simple HTML pages,
+            # or for SAP UI5/Fiori SPAs (expansion clicks cause SPA
+            # navigation, clearing the content).
             queue_size = self._queue.qsize()
             if queue_size >= self.config.max_pages:
                 expanded, hit_limit = 0, False
             elif page_type == 'html':
                 expanded, hit_limit = 0, False
+            elif is_sap_ui5:
+                expanded, hit_limit = 0, False
             else:
                 expanded, hit_limit = await self._expand_all_elements(page)
 
-            # Extract content
+            # ── Extract links FIRST, BEFORE content extraction ─────
+            # Content extraction modifies the live DOM (removes nav/header
+            # elements), so link discovery must happen before that.
+            links = await self._extract_links(page, normalized)
+
+            # Supplement with shadow DOM links (FluidTopics, Web Components)
+            if is_ft or len(links) < 3:
+                shadow_links = await self._extract_shadow_dom_links(
+                    page, normalized
+                )
+                existing = set(links)
+                for sl in shadow_links:
+                    if sl not in existing:
+                        links.append(sl)
+                        existing.add(sl)
+
+            # Supplement with FluidTopics resolver links
+            if is_ft and self._ft_resolver:
+                ft_links = self._build_ft_links()
+                existing = set(links)
+                for fl in ft_links:
+                    n = self.url_normalizer.normalize(fl)
+                    if n and n not in existing:
+                        links.append(n)
+                        existing.add(n)
+
+            # Supplement with SPA sidebar navigation (SAP for Me, etc.)
+            if is_sap_ui5 and len(links) < 5:
+                spa_links = await self._discover_spa_navigation(
+                    page, normalized
+                )
+                existing = set(links)
+                for sl in spa_links:
+                    if sl not in existing:
+                        links.append(sl)
+                        existing.add(sl)
+                        # Also widen scope if needed
+                        if self._scope_filter:
+                            self._scope_filter.widen_scope(sl)
+
+            # ── Extract content (modifies live DOM: removes nav, etc.) ──
             t_extract_start = time.monotonic()
             content = await self._extract_content(
                 page,
@@ -816,32 +1130,19 @@ class AsyncDocCrawler:
                 page_url=normalized,
             )
 
-            # Extract links
-            if self._queue.qsize() >= self.config.max_pages:
-                links = []
-            else:
-                links = await self._extract_links(page, normalized)
-
-                # Supplement with shadow DOM links (FluidTopics, Web Components)
-                if is_ft or len(links) < 3:
-                    shadow_links = await self._extract_shadow_dom_links(
-                        page, normalized
-                    )
-                    existing = set(links)
-                    for sl in shadow_links:
-                        if sl not in existing:
-                            links.append(sl)
-                            existing.add(sl)
-
-                # Supplement with FluidTopics resolver links
-                if is_ft and self._ft_resolver:
-                    ft_links = self._build_ft_links()
-                    existing = set(links)
-                    for fl in ft_links:
-                        n = self.url_normalizer.normalize(fl)
-                        if n and n not in existing:
-                            links.append(n)
-                            existing.add(n)
+            # ── SAP UI5 table extraction ────────────────────────────
+            if is_sap_ui5:
+                sap_tables = await extract_sap_tables(page)
+                if sap_tables:
+                    content['tables'].extend(sap_tables)
+                    # Also append table text to content for RAG pipeline
+                    for tbl in sap_tables:
+                        headers = tbl.get('headers', [])
+                        rows = tbl.get('rows', [])
+                        if headers:
+                            content['text'] += '\n' + ' | '.join(headers)
+                        for row in rows[:200]:  # cap at 200 rows
+                            content['text'] += '\n' + ' | '.join(row)
 
             # Breadcrumb and section path
             breadcrumb = await self._extract_breadcrumb(page)
@@ -865,14 +1166,71 @@ class AsyncDocCrawler:
                 word_count=len(content['text'].split()),
             )
 
+            # ── Content quality gate: detect raw JSON / API dumps ───
+            text_stripped = result.text_content.strip()
+            if text_stripped and (
+                (text_stripped.startswith('{') and text_stripped.endswith('}'))
+                or (text_stripped.startswith('[') and text_stripped.endswith(']'))
+            ):
+                try:
+                    import json as _json
+                    _json.loads(text_stripped)
+                    # It's pure JSON — skip this page
+                    logger.warning(
+                        f"[SKIP] {normalized[:70]} — "
+                        f"raw JSON response (not useful page content)"
+                    )
+                    result.text_content = ""
+                    result.word_count = 0
+                    result.code_blocks = []
+                    result.skipped = True
+                    timing.status = "skipped"
+                    timing.word_count = 0
+                    timing.link_count = len(links)
+                    timing.total_ms = (time.monotonic() - t_start) * 1000
+                    await self.monitor.record_page(timing)
+                    return result
+                except Exception:
+                    pass  # Not valid JSON — keep the content
+
+            # ── Near-duplicate detection ────────────────────────────
+            # Fingerprint = title + first 200 chars of text. If another page
+            # with the same fingerprint was already crawled, skip this one.
+            if result.word_count > 0:
+                fp_text = (result.title or '') + '|' + text_stripped[:200]
+                import hashlib
+                fp = hashlib.md5(fp_text.encode('utf-8', errors='replace')).hexdigest()
+                async with self._pages_lock:
+                    first_url = self._content_fingerprints.get(fp)
+                if first_url and first_url != normalized:
+                    logger.warning(
+                        f"[SKIP] {normalized[:70]} — "
+                        f"near-duplicate of {first_url[:60]}"
+                    )
+                    result.text_content = ""
+                    result.word_count = 0
+                    result.skipped = True
+                    timing.status = "skipped"
+                    timing.word_count = 0
+                    timing.link_count = len(links)
+                    timing.total_ms = (time.monotonic() - t_start) * 1000
+                    await self.monitor.record_page(timing)
+                    return result
+                else:
+                    async with self._pages_lock:
+                        self._content_fingerprints[fp] = normalized
+
             # Content quality gate
             if result.word_count < self.config.min_word_count:
                 text_lower = result.text_content.lower()
                 is_junk = (
                     'loading application' in text_lower
-                    or ('cookie' in text_lower and result.word_count < 100)
                     or result.word_count == 0
                 )
+                # Only flag cookie-only pages when they have < 30 words
+                # (very small pages dominated by cookie consent text)
+                if not is_junk and 'cookie' in text_lower and result.word_count < 30:
+                    is_junk = True
                 if is_junk:
                     logger.warning(
                         f"[SKIP] {normalized[:70]} — "
@@ -923,6 +1281,10 @@ class AsyncDocCrawler:
             timing.total_ms = (time.monotonic() - t_start) * 1000
             await self.monitor.record_page(timing)
 
+            # Screenshot on failure
+            if self.config.screenshot_on_failure and page:
+                await self._save_debug_screenshot(page, normalized, "timeout")
+
             if self.config.enable_static_fallback:
                 return await self._crawl_page_static(
                     normalized, depth, parent_url, section_path
@@ -937,6 +1299,10 @@ class AsyncDocCrawler:
             timing.status = "failed"
             timing.total_ms = (time.monotonic() - t_start) * 1000
             await self.monitor.record_page(timing)
+
+            # Screenshot on failure
+            if self.config.screenshot_on_failure and page:
+                await self._save_debug_screenshot(page, normalized, "error")
 
             if self.config.enable_static_fallback:
                 return await self._crawl_page_static(
@@ -964,6 +1330,10 @@ class AsyncDocCrawler:
         depth: int,
     ) -> None:
         """Enqueue discovered links into the BFS queue."""
+        # Skip enqueueing when queue already has enough work
+        if self._queue.qsize() >= self.config.max_pages * 3:
+            return
+
         new_count = 0
         for link in page_result.internal_links:
             async with self._visited_lock:
@@ -1053,7 +1423,18 @@ class AsyncDocCrawler:
         main_content = None
         best_content = None
         best_content_len = 0
-        for selector in self.config.content_selectors:
+
+        # Build selector list: add SAP selectors dynamically when UI5 detected
+        selectors_to_try = list(self.config.content_selectors)
+        page_url_lower = (page_url or '').lower()
+        is_sap_page = await detect_sap_ui5(page)
+        if is_sap_page:
+            sap_sels = get_sap_content_selectors()
+            for s in sap_sels:
+                if s not in selectors_to_try:
+                    selectors_to_try.insert(0, s)  # prioritize SAP selectors
+
+        for selector in selectors_to_try:
             try:
                 el = await page.query_selector(selector)
                 if el:
@@ -1076,7 +1457,12 @@ class AsyncDocCrawler:
         if not main_content:
             main_content = await page.query_selector('body')
 
+        pre_exclude_text = ''  # Raw text before exclude_selectors strip DOM elements
+
         if main_content:
+            logger.debug(f"[EXTRACT] main_content tag: {await main_content.evaluate('el => el.tagName')}")
+            main_inner_len = await main_content.evaluate("el => (el.innerText || '').trim().length")
+            logger.info(f"[EXTRACT] Main content: {main_inner_len} chars before extraction")
             # Headings
             for level in range(1, 7):
                 try:
@@ -1116,22 +1502,105 @@ class AsyncDocCrawler:
             except Exception:
                 pass
 
-            # Code blocks
+            # Code blocks (skip raw JSON blobs — they're API responses, not code)
             try:
                 code_blocks = await main_content.query_selector_all('pre, code')
                 for block in code_blocks[:20]:
                     try:
                         code_text = (await block.inner_text()).strip()
                         if code_text and len(code_text) > 10:
+                            # Skip raw JSON blobs
+                            if (
+                                (code_text.startswith('{') and code_text.endswith('}'))
+                                or (code_text.startswith('[') and code_text.endswith(']'))
+                            ):
+                                try:
+                                    import json as _json
+                                    _json.loads(code_text)
+                                    continue  # Valid JSON blob — skip
+                                except Exception:
+                                    pass
                             content['code_blocks'].append(code_text)
                     except Exception:
                         pass
             except Exception:
                 pass
 
-            # Text content
+            # Text content — capture raw text BEFORE exclude_selectors
+            # strip elements (they modify the live DOM irreversibly).
+            pre_exclude_text = ''
             try:
-                for selector in self.config.exclude_selectors:
+                pre_exclude_text = await page.evaluate("""
+                    () => {
+                        // Clone the body so we can strip navigation without
+                        // affecting the live DOM (link extraction already ran).
+                        const clone = document.body.cloneNode(true);
+
+                        // Remove non-content elements from clone
+                        const removeSelectors = [
+                            'script', 'style', 'noscript', 'svg', 'img',
+                            'nav', '[role="navigation"]', '[role="banner"]',
+                            '[aria-hidden="true"]',
+                            // Cookie/consent banners
+                            '#consent_blackbar', '#trustarc-banner-overlay',
+                            '#onetrust-banner-sdk', '#CybotCookiebotDialog',
+                            // SAP UI5 navigation and non-content areas
+                            '.sapUshellShellHead', '#shell-header',
+                            '.sapTntSideNavigation',
+                            '.sapUshellShellNavigation',
+                            '.sapMShellHeader',
+                            // SAP UI5 invisible/hidden text (ARIA labels etc.)
+                            '.sapUiInvisibleText',
+                            '.sapUiHidden',
+                            '.sapUiHiddenPlaceholder',
+                            // SAP dialogs/overlays/popovers
+                            '.help4', '.sapMDialog', '.sapUiBLy',
+                            '.sapMPopover', '.sapMMessageToast',
+                        ];
+                        for (const sel of removeSelectors) {
+                            clone.querySelectorAll(sel).forEach(el => el.remove());
+                        }
+
+                        // Use innerText (respects CSS visibility — skips
+                        // display:none, visibility:hidden, etc.)
+                        return (clone.innerText || '').trim();
+                    }
+                """)
+            except Exception as e:
+                logger.warning(f"[EXTRACT] Pre-exclude capture error: {e}")
+
+            # Clean SAP UI5 placeholder / design-time text
+            if pre_exclude_text and is_sap_page:
+                _sap_junk = [
+                    'Header Title (Not Shown)',
+                    'Short Header Subtitle',
+                    'Any Group Title 1',
+                    'Any Group Title 2',
+                    'Collapse Header',
+                ]
+                for junk in _sap_junk:
+                    pre_exclude_text = pre_exclude_text.replace(junk, '')
+                pre_exclude_text = re.sub(r'\n{3,}', '\n\n', pre_exclude_text).strip()
+
+            pre_exclude_wc = len(pre_exclude_text.split()) if pre_exclude_text else 0
+            logger.info(f"[EXTRACT] Pre-exclude text: {pre_exclude_wc} words")
+
+            try:
+                exclude_list = list(self.config.exclude_selectors)
+                # Add SAP-specific nav/header exclude selectors
+                if is_sap_page:
+                    sap_excludes = [
+                        '.sapUshellShellHead', '#shell-header',
+                        '.sapTntSideNavigation', '.sapMShellHeader',
+                        '.sapUshellShellNavigation',
+                        '.sapTntNavLI', '.sapMNav',
+                        '[role="navigation"]', '[role="banner"]',
+                    ]
+                    for s in sap_excludes:
+                        if s not in exclude_list:
+                            exclude_list.append(s)
+
+                for selector in exclude_list:
                     try:
                         els = await main_content.query_selector_all(selector)
                         for el in els:
@@ -1143,6 +1612,7 @@ class AsyncDocCrawler:
                 text = re.sub(r'\n{3,}', '\n\n', text)
                 text = re.sub(r' {2,}', ' ', text)
                 content['text'] = text
+                logger.info(f"[EXTRACT] Post-exclude text: {len(text.split())} words")
             except Exception:
                 pass
 
@@ -1180,6 +1650,33 @@ class AsyncDocCrawler:
                     logger.info(f"[FT-FETCH] {ft_wc} words (previous had {current_wc})")
                     content['text'] = ft_text
                     self._enrich_from_html(content, ft_html, page_url)
+
+        # Fallback 4: Pre-exclude raw text (for SPAs like SAP for Me
+        # where exclude_selectors strip too much from body).
+        # Triggers when: (a) post-exclude is below min threshold, or
+        # (b) exclusion was too aggressive (removed >60% of content).
+        current_wc = len(content['text'].split())
+        use_pre_exclude = False
+        if current_wc < self.config.min_word_count and pre_exclude_text:
+            use_pre_exclude = True
+        elif pre_exclude_wc > 0 and current_wc > 0:
+            ratio = current_wc / pre_exclude_wc
+            if ratio < 0.35 and pre_exclude_wc >= 50:
+                use_pre_exclude = True
+                logger.info(
+                    f"[EXTRACT] Exclusion too aggressive: kept "
+                    f"{ratio:.0%} of content ({current_wc}/{pre_exclude_wc})"
+                )
+        if use_pre_exclude and pre_exclude_text:
+            raw_text = re.sub(r'\n{3,}', '\n\n', pre_exclude_text)
+            raw_text = re.sub(r' {2,}', ' ', raw_text).strip()
+            raw_wc = len(raw_text.split())
+            if raw_wc > current_wc and raw_wc >= self.config.min_word_count:
+                logger.info(
+                    f"[SPA-FALLBACK] Pre-exclude text: "
+                    f"{raw_wc} words (post-exclude had {current_wc})"
+                )
+                content['text'] = raw_text
 
         return content
 
@@ -1291,6 +1788,205 @@ class AsyncDocCrawler:
                 continue
 
         return list(links)
+
+    async def _discover_spa_navigation(
+        self, page: Page, base_url: str
+    ) -> List[str]:
+        """Discover SPA navigation routes from sidebar/nav elements.
+
+        Uses fast JS-based extraction to find URLs from navigation elements
+        without clicking each one (which is slow and error-prone).
+
+        Strategy:
+            1. Extract href/data attributes from nav elements (instant)
+            2. Intercept router config from window/JS (instant)
+            3. Only click nav items as a last resort (max 5 items)
+
+        Returns:
+            List of discovered URLs from SPA navigation.
+        """
+        discovered: List[str] = []
+        base_parsed = urlparse(base_url)
+        base_domain = base_parsed.netloc.lower()
+        base_origin = f"{base_parsed.scheme}://{base_parsed.netloc}"
+
+        try:
+            # ── Fast path: extract URLs from nav attributes ─────────
+            nav_urls = await page.evaluate("""
+                (baseOrigin) => {
+                    const urls = new Set();
+
+                    // 1. Regular <a> links in nav/sidebar areas
+                    const navAreas = document.querySelectorAll(
+                        'nav, [role="navigation"], aside, ' +
+                        '.sapTntSideNavigation, [class*="sidebar"], ' +
+                        '[class*="Sidebar"], [class*="side-nav"], ' +
+                        '.sapMNav'
+                    );
+                    navAreas.forEach(nav => {
+                        nav.querySelectorAll('a[href]').forEach(a => {
+                            const href = a.href;
+                            if (href && !href.startsWith('javascript:') &&
+                                !href.startsWith('#') && href.startsWith('http')) {
+                                urls.add(href);
+                            }
+                        });
+                    });
+
+                    // 2. Elements with data-href, data-url, data-route
+                    document.querySelectorAll(
+                        '[data-href], [data-url], [data-route], ' +
+                        '[data-navigate], [data-path]'
+                    ).forEach(el => {
+                        const val = el.dataset.href || el.dataset.url ||
+                                    el.dataset.route || el.dataset.navigate ||
+                                    el.dataset.path;
+                        if (val) {
+                            if (val.startsWith('http')) {
+                                urls.add(val);
+                            } else if (val.startsWith('/')) {
+                                urls.add(baseOrigin + val);
+                            }
+                        }
+                    });
+
+                    // 3. SAP for Me specific: sidebar items with data attrs
+                    // (Only trust actual attributes, NOT text-to-URL.)
+                    document.querySelectorAll(
+                        '.sapMeSidebarItem[data-href], ' +
+                        '.sapMeSidebarItem[data-url], ' +
+                        '.sapMeSidebarItem[data-route], ' +
+                        '[class*="SAPforMeNavigationItem"][data-href]'
+                    ).forEach(el => {
+                        const val = el.dataset.href || el.dataset.url ||
+                                    el.dataset.route;
+                        if (val) {
+                            if (val.startsWith('http')) urls.add(val);
+                            else if (val.startsWith('/')) urls.add(baseOrigin + val);
+                        }
+                    });
+
+                    // 4. Hash-based routes from URL fragments
+                    document.querySelectorAll('a[href^="#"]').forEach(a => {
+                        const hash = a.getAttribute('href');
+                        if (hash && hash.length > 1 && hash.length < 100) {
+                            urls.add(baseOrigin + '/' + hash.substring(1));
+                        }
+                    });
+
+                    return Array.from(urls);
+                }
+            """, base_origin)
+
+            for url in (nav_urls or []):
+                try:
+                    normalized = self.url_normalizer.normalize(url)
+                    if (normalized and base_domain in normalized.lower()
+                            and normalized not in discovered):
+                        discovered.append(normalized)
+                except Exception:
+                    continue
+
+            if discovered:
+                logger.info(
+                    f"[SPA-NAV] Fast extraction found {len(discovered)} URLs"
+                )
+                return discovered
+
+            # ── Slow fallback: click max 5 sidebar items ────────────
+            original_url = page.url
+            nav_items = await page.evaluate("""
+                () => {
+                    const items = [];
+                    document.querySelectorAll(
+                        '.sapMeSidebarItem, .sapTntNavLI, ' +
+                        '[class*="SidebarItem"], [class*="sidebarItem"], ' +
+                        '.sapTntSideNavigation li'
+                    ).forEach((el, idx) => {
+                        const text = (el.textContent || '').trim();
+                        if (text && text.length < 80) {
+                            items.push({
+                                index: idx,
+                                text: text.split('\\n')[0].trim(),
+                            });
+                        }
+                    });
+                    return items.slice(0, 5);  // max 5 items
+                }
+            """)
+
+            if not nav_items:
+                return discovered
+
+            logger.info(
+                f"[SPA-NAV] Clicking {len(nav_items)} sidebar items "
+                f"(fallback): {', '.join(i['text'] for i in nav_items)}"
+            )
+
+            for item in nav_items:
+                try:
+                    item_text = item['text']
+                    el = await page.query_selector(
+                        f'.sapMeSidebarItem:has-text("{item_text}")'
+                    )
+                    if not el:
+                        el = await page.query_selector(
+                            f'[class*="SidebarItem"]:has-text("{item_text}")'
+                        )
+                    if not el:
+                        continue
+
+                    try:
+                        await el.click(timeout=2000)
+                    except Exception:
+                        continue
+
+                    # Brief wait for SPA route change
+                    await asyncio.sleep(0.8)
+                    try:
+                        await page.wait_for_load_state(
+                            'networkidle', timeout=3000
+                        )
+                    except PlaywrightTimeout:
+                        pass
+
+                    new_url = page.url
+                    if (new_url != original_url
+                            and new_url != base_url
+                            and base_domain in new_url.lower()):
+                        normalized = self.url_normalizer.normalize(new_url)
+                        if normalized and normalized not in discovered:
+                            discovered.append(normalized)
+                            logger.info(
+                                f"[SPA-NAV] \"{item_text}\" → {normalized}"
+                            )
+
+                    # Return to original page
+                    if page.url != original_url:
+                        try:
+                            await page.goto(
+                                original_url, timeout=10000, wait_until='load'
+                            )
+                            await asyncio.sleep(0.5)
+                        except Exception:
+                            break  # Can't return, stop clicking
+
+                except Exception:
+                    continue
+
+            # Final navigate back if needed
+            if page.url != original_url:
+                try:
+                    await page.goto(
+                        original_url, timeout=10000, wait_until='load'
+                    )
+                except Exception:
+                    pass
+
+        except Exception as e:
+            logger.debug(f"[SPA-NAV] Error: {e}")
+
+        return discovered
 
     async def _extract_breadcrumb(self, page: Page) -> List[str]:
         """Extract breadcrumb navigation."""
@@ -1641,11 +2337,19 @@ class AsyncDocCrawler:
         Many documentation sites (Oracle OHC, ServiceNow, etc.) render their
         navigation trees asynchronously after 'load'.  Without this wait, we
         see only 1-3 links instead of dozens.
+
+        Fast-exit: if links are already >=5 on first check, skip polling
+        (simple static sites don't need this wait).
         """
         try:
             prev_count = await page.evaluate(
                 "() => document.querySelectorAll('a[href]').length"
             )
+            # Fast-exit for pages that already have plenty of links
+            # (static HTML, server-rendered). Saves 1-4s per page.
+            if prev_count >= 5:
+                return
+
             stable_ticks = 0
             deadline = time.monotonic() + timeout_s
             while time.monotonic() < deadline:
@@ -1745,11 +2449,12 @@ class AsyncDocCrawler:
             pass
 
     async def _dismiss_overlays(self, page: Page) -> None:
-        """Remove WalkMe, survey, and promotional overlays that block clicks.
+        """Remove WalkMe, survey, SAP, and promotional overlays that block clicks.
 
         ServiceNow and other enterprise sites inject WalkMe guided tours
         and similar overlays that sit on top of all content, intercepting
         pointer events and preventing expansion clicks.
+        SAP for Me shows a "Welcome" popup overlay and help4 tour on first visit.
         """
         try:
             removed = await page.evaluate("""
@@ -1768,6 +2473,47 @@ class AsyncDocCrawler:
                     document.querySelectorAll(
                         '.walkme-override, .wm-outer-overlay, [class*="walkme"]'
                     ).forEach(el => { el.remove(); count++; });
+
+                    // ── TrustArc cookie consent (SAP for Me) ──────────
+                    const trustArc = document.getElementById('consent_blackbar');
+                    if (trustArc) { trustArc.remove(); count++; }
+                    const trustOverlay = document.getElementById('trustarc-banner-overlay');
+                    if (trustOverlay) { trustOverlay.remove(); count++; }
+                    document.querySelectorAll(
+                        '[id*="truste"], [class*="truste"], [id*="trustarc"]'
+                    ).forEach(el => { el.remove(); count++; });
+
+                    // ── SAP help4 tour / walkthrough overlay ──────────
+                    document.querySelectorAll(
+                        '.help4, .help4-tour, [class*="help4-adapter"], ' +
+                        '.help4-BubbleContent, .help4-TourContent'
+                    ).forEach(el => { el.remove(); count++; });
+
+                    // SAP for Me / Fiori dialog overlays and popups
+                    document.querySelectorAll(
+                        '.sapMDialog, .sapMMessageBox, .sapMPopover, ' +
+                        '.sapUiBLy, .sapMDialogBLy, ' +
+                        '[class*="welcomeDialog"], [class*="WelcomeDialog"], ' +
+                        '[class*="cof-onboarding"], [class*="onboarding"]'
+                    ).forEach(el => { el.remove(); count++; });
+
+                    // SAP overlay dismiss buttons — only click buttons
+                    // INSIDE known overlay containers, not ALL page buttons.
+                    const overlayContainers = document.querySelectorAll(
+                        '.sapMDialog, .sapMPopover, .sapUiBLy, ' +
+                        '[class*="welcomeDialog"], [class*="onboarding"], ' +
+                        '.help4, .help4-tour, [class*="help4"]'
+                    );
+                    overlayContainers.forEach(container => {
+                        container.querySelectorAll('button, a.sapMBtn').forEach(btn => {
+                            const txt = (btn.textContent || '').trim().toLowerCase();
+                            if (txt === 'close' || txt === 'skip' || txt === 'dismiss' ||
+                                txt === 'got it' || txt === 'not now' || txt === 'start') {
+                                try { btn.click(); count++; } catch(e) {}
+                            }
+                        });
+                    });
+
                     // Generic overlays / modals that intercept pointer events
                     document.querySelectorAll(
                         '.modal-backdrop, .overlay-backdrop'

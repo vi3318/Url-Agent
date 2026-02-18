@@ -1,2 +1,8 @@
 docs_stripe_com_payments.json
 *.json
+
+# Auth session state (contains cookies — never commit)
+auth_state*.json
+
+# Environment file with credentials
+.env

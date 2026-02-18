@@ -3,8 +3,10 @@
 Interactive CLI for the Web Crawler
 ====================================
 Unified mode: Playwright-based crawling with automatic JS/HTML detection.
-The system auto-detects whether each page needs JS expansion or is simple HTML,
-eliminating the need for users to choose between standard and deep mode.
+The system auto-detects portal type (SAP, Salesforce, etc.) from the URL,
+prompts for credentials interactively, and handles login automatically.
+
+Users only need to provide the URL — everything else is auto-detected.
 
 All configuration flows through ``CrawlerRunConfig`` — the single source of
 truth for defaults, CLI overrides, and interactive prompts.
@@ -18,6 +20,18 @@ import sys
 import time
 from pathlib import Path
 from urllib.parse import urlparse
+
+# Load .env file (credentials, config) before anything else
+try:
+    from dotenv import load_dotenv
+    # Search up to 3 parent directories for .env
+    env_path = Path(__file__).resolve().parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+    else:
+        load_dotenv()  # tries CWD
+except ImportError:
+    pass  # python-dotenv not installed — env vars must be set manually
 
 from .run_config import CrawlerRunConfig
 
@@ -64,6 +78,54 @@ def get_choice(prompt: str, options: list, default: int = 1) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Auth auto-detection + interactive credential flow
+# ---------------------------------------------------------------------------
+
+def _detect_and_setup_auth(url: str, force_login: bool = False,
+                           auth_state_file: str = "auth_state.json"):
+    """Auto-detect portal type and set up authentication.
+
+    Flow:
+        1. Check URL against all registered auth handlers
+        2. If a handler matches, resolve credentials (env → interactive prompt)
+        3. Create a SessionStore ready for the crawler
+
+    Args:
+        url:             The target URL to crawl.
+        force_login:     If True, ignore saved session state.
+        auth_state_file: Path for persisting session state.
+
+    Returns:
+        A ``SessionStore`` instance (or None if no auth is needed).
+    """
+    from .auth.auth_factory import AuthFactory
+    from .auth.session_store import SessionStore
+
+    handler = AuthFactory.detect(url)
+    if not handler:
+        return None
+
+    print(f"\n  Portal detected: {handler.portal_name}")
+    print(f"  Authentication will be handled automatically.")
+
+    # Resolve credentials (env vars first, then interactive prompt)
+    creds = handler.resolve_credentials(interactive=True)
+    if not creds.is_complete:
+        print("\n  Credentials incomplete — crawling without authentication.")
+        print("  Set environment variables or enter credentials when prompted.\n")
+        return None
+
+    store = SessionStore(
+        handler=handler,
+        state_path=auth_state_file,
+        force_login=force_login,
+        credentials=creds,
+        interactive=True,
+    )
+    return store
+
+
+# ---------------------------------------------------------------------------
 # Interactive flow → builds CrawlerRunConfig
 # ---------------------------------------------------------------------------
 
@@ -80,7 +142,7 @@ def _base_name_from_url(url: str) -> str:
 def run_interactive_cli():
     """Prompt the user and build a CrawlerRunConfig."""
     print("\n" + "=" * 60)
-    print("🕷️  WEB CRAWLER - Interactive Mode")
+    print("  WEB CRAWLER - Interactive Mode")
     print("=" * 60)
 
     url = get_user_input("\nEnter URL to crawl")
@@ -89,6 +151,9 @@ def run_interactive_cli():
         sys.exit(1)
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
+
+    # ── Auto-detect portal & setup auth ───────────────────────────
+    session_store = _detect_and_setup_auth(url)
 
     format_choice = get_choice(
         "Select Output Format:",
@@ -121,28 +186,31 @@ def run_interactive_cli():
         print("Crawl cancelled.")
         sys.exit(0)
 
-    print("\n🚀 Starting crawl...\n")
-    _run_crawl(url, cfg)
+    print("\nStarting crawl...\n")
+    _run_crawl(url, cfg, session_store=session_store)
 
 
 # ---------------------------------------------------------------------------
 # Unified execution — both interactive & flag paths land here
 # ---------------------------------------------------------------------------
 
-def _run_crawl(url: str, cfg: CrawlerRunConfig):
+def _run_crawl(url: str, cfg: CrawlerRunConfig, session_store=None):
     """Execute crawl — uses async engine by default, sync as fallback."""
     start_time = time.time()
-    _run_async(url, cfg)
+    _run_async(url, cfg, session_store=session_store)
     elapsed = time.time() - start_time
     # elapsed already printed inside helpers via print_summary
 
 
-def _run_async(url: str, cfg: CrawlerRunConfig):
+def _run_async(url: str, cfg: CrawlerRunConfig, session_store=None):
     """Async crawl: high-performance worker pool with RAG pipeline."""
     from .async_crawler import AsyncDocCrawler
     import asyncio
 
-    async_cfg = cfg.to_async_config(workers=getattr(cfg, '_workers', 6))
+    async_cfg = cfg.to_async_config(
+        workers=getattr(cfg, '_workers', 6),
+        session_store=session_store,
+    )
     crawler = AsyncDocCrawler(async_cfg)
 
     def progress_cb(pages_crawled, current_url, stats):
@@ -188,7 +256,7 @@ def _export_async(crawler, result, cfg: CrawlerRunConfig):
     if exported:
         print("\n" + "-" * 40)
         for path in exported:
-            print(f"  ✅ Exported: {path}")
+            print(f"  Exported: {path}")
         print("-" * 40)
     else:
         logger.warning("No output format was configured — nothing exported")
@@ -197,7 +265,7 @@ def _export_async(crawler, result, cfg: CrawlerRunConfig):
 def print_summary(stats: dict, elapsed: float):
     """Print crawl summary."""
     print("\n" + "=" * 65)
-    print("📊 CRAWL COMPLETE")
+    print("CRAWL COMPLETE")
     print("=" * 65)
     print(f"  Total pages crawled: {stats.get('pages_crawled', 0)}")
     if stats.get('pages_skipped', 0) > 0:
@@ -239,6 +307,7 @@ def run_cli_with_args():
 Examples:
   python -m crawler                              # Interactive mode
   python -m crawler https://example.com          # Auto-detect mode with defaults
+  python -m crawler https://me.sap.com/home      # Auto-detects SAP, prompts for credentials
   python -m crawler https://example.com --depth 3 --pages 50 --output-json out.json
         """
     )
@@ -246,7 +315,7 @@ Examples:
     parser.add_argument('url', nargs='?', help='URL to crawl (omit for interactive mode)')
     parser.add_argument('--depth', type=int, default=5, help='Maximum crawl depth (default: 5)')
     parser.add_argument('--pages', type=int, default=300, help='Maximum pages to crawl (default: 300)')
-    parser.add_argument('--timeout', type=int, default=15, help='Timeout per page in seconds (default: 15)')
+    parser.add_argument('--timeout', type=int, default=20, help='Timeout per page in seconds (default: 20)')
     parser.add_argument('--max-interactions', type=int, default=50, help='Max interactions per page (default: 50)')
     parser.add_argument('--rate', type=float, default=0.3, help='Delay between pages in seconds (default: 0.3)')
     parser.add_argument('--workers', type=int, default=6, help='Number of concurrent workers (default: 6)')
@@ -268,7 +337,78 @@ Examples:
         help='Use legacy sync crawler instead of async',
     )
 
+    # ── Authentication flags ──────────────────────────────────────
+    auth_group = parser.add_argument_group('Authentication',
+        'Options for crawling authenticated / enterprise portals. '
+        'In most cases, auth is auto-detected from the URL. '
+        'Credentials are resolved from env vars or prompted interactively.')
+    auth_group.add_argument(
+        '--login-url', type=str, metavar='URL',
+        help='Login page URL (overrides auto-detection)',
+    )
+    auth_group.add_argument(
+        '--username', type=str,
+        help='Login username (or set SAP_USERNAME / CRAWLER_USERNAME env var)',
+    )
+    auth_group.add_argument(
+        '--password', type=str,
+        help='Login password (or set SAP_PASSWORD / CRAWLER_PASSWORD env var)',
+    )
+    auth_group.add_argument(
+        '--auth-state-file', type=str, metavar='PATH',
+        help='Path to save/load session state (default: auth_state.json)',
+    )
+    auth_group.add_argument(
+        '--force-login', action='store_true',
+        help='Ignore saved session and perform fresh login',
+    )
+    auth_group.add_argument(
+        '--login-strategy', type=str, default='standard',
+        choices=['standard', 'sap_saml'],
+        help='Login strategy: standard (form fill) or sap_saml (SAML redirect). '
+             'Usually auto-detected from URL.',
+    )
+    auth_group.add_argument(
+        '--no-auth', action='store_true',
+        help='Skip auto-detection and crawl without authentication',
+    )
+
+    # ── Enterprise flags ──────────────────────────────────────────
+    enterprise_group = parser.add_argument_group('Enterprise',
+        'Options for SAP Fiori / UI5 and enterprise portal crawling')
+    enterprise_group.add_argument(
+        '--bootstrap', action='store_true',
+        help='Launch headed browser for manual login (MFA, CAPTCHA). '
+             'Saves session to auth_state.json, then exits.',
+    )
+    enterprise_group.add_argument(
+        '--screenshot-on-failure', action='store_true',
+        help='Save debug screenshots when pages fail',
+    )
+    enterprise_group.add_argument(
+        '--humanized-delay', action='store_true',
+        help='Add randomized jitter to delays (human-like pacing)',
+    )
+    enterprise_group.add_argument(
+        '--max-retries', type=int, default=2,
+        help='Max retries per failed page (default: 2)',
+    )
+
     args = parser.parse_args()
+
+    # ── Bootstrap mode: headed browser for manual login ───────────
+    if getattr(args, 'bootstrap', False):
+        if not args.url:
+            print("Bootstrap mode requires a URL argument.")
+            print("   Usage: python -m crawler --bootstrap https://portal.example.com")
+            return
+        url = args.url
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        output = getattr(args, 'auth_state_file', None) or 'auth_state.json'
+        from .auth.session_bootstrap import run_bootstrap_cli
+        run_bootstrap_cli(portal_url=url, output_path=output)
+        return
 
     if not args.url:
         run_interactive_cli()
@@ -279,6 +419,43 @@ Examples:
         url = 'https://' + url
 
     base_name = _base_name_from_url(url)
+
+    # ── Auto-detect auth (unless --no-auth) ───────────────────────
+    session_store = None
+    no_auth = getattr(args, 'no_auth', False)
+
+    if not no_auth:
+        # Try new modular auth first
+        auth_state_file = getattr(args, 'auth_state_file', None) or 'auth_state.json'
+        force_login = getattr(args, 'force_login', False)
+
+        # If user provided explicit credentials via CLI flags, use them
+        from .auth.base_auth import Credentials
+        cli_creds = None
+        if getattr(args, 'username', None) or getattr(args, 'password', None):
+            cli_creds = Credentials(
+                username=getattr(args, 'username', '') or '',
+                password=getattr(args, 'password', '') or '',
+            )
+
+        from .auth.auth_factory import AuthFactory
+        from .auth.session_store import SessionStore
+
+        handler = AuthFactory.detect(url)
+        if handler:
+            # Resolve credentials: CLI flags → env vars → interactive prompt
+            creds = handler.resolve_credentials(cli_creds, interactive=True)
+            if creds.is_complete:
+                session_store = SessionStore(
+                    handler=handler,
+                    state_path=auth_state_file,
+                    force_login=force_login,
+                    credentials=creds,
+                    interactive=True,
+                )
+                logger.info(f"[AUTH] {handler.portal_name} portal detected — auth enabled")
+            else:
+                logger.warning("[AUTH] Credentials incomplete — crawling without auth")
 
     # Build unified config from flags
     cfg = CrawlerRunConfig.from_cli_args(args)
@@ -303,7 +480,7 @@ Examples:
     if getattr(args, 'sync', False):
         _run_sync(url, cfg)
     else:
-        _run_crawl(url, cfg)
+        _run_crawl(url, cfg, session_store=session_store)
 
 
 def _run_sync(url: str, cfg: CrawlerRunConfig):
@@ -334,7 +511,7 @@ def _run_sync(url: str, cfg: CrawlerRunConfig):
         if exported:
             print("\n" + "-" * 40)
             for path in exported:
-                print(f"  ✅ Exported: {path}")
+                print(f"  Exported: {path}")
             print("-" * 40)
 
     print_summary(result.stats, elapsed)

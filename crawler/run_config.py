@@ -89,6 +89,19 @@ class CrawlerRunConfig:
     deny_patterns: List[str] = field(default_factory=list)
     strip_all_queries: bool = False
 
+    # ---- Authentication ----
+    login_url: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    auth_state_file: Optional[str] = None
+    force_login: bool = False
+    login_strategy: str = "standard"   # "standard" | "sap_saml"
+
+    # ---- Enterprise stability ----
+    screenshot_on_failure: bool = False
+    humanized_delay: bool = False
+    max_retries_per_page: int = 2
+
     # -----------------------------------------------------------------------
     # Factory helpers
     # -----------------------------------------------------------------------
@@ -112,6 +125,16 @@ class CrawlerRunConfig:
             output_docx=getattr(args, "output_docx", None),
             deny_patterns=getattr(args, "deny_pattern", []) or [],
             strip_all_queries=getattr(args, "strip_query", False),
+            # Authentication
+            login_url=getattr(args, "login_url", None),
+            username=getattr(args, "username", None),
+            password=getattr(args, "password", None),
+            auth_state_file=getattr(args, "auth_state_file", None),
+            force_login=getattr(args, "force_login", False),
+            login_strategy=getattr(args, "login_strategy", "standard"),
+            screenshot_on_failure=getattr(args, "screenshot_on_failure", False),
+            humanized_delay=getattr(args, "humanized_delay", False),
+            max_retries_per_page=getattr(args, "max_retries", 2),
         )
         # Store extra async-specific fields
         cfg._workers = getattr(args, "workers", 6)
@@ -139,13 +162,31 @@ class CrawlerRunConfig:
         )
         return cfg
 
-    def to_async_config(self, workers: int = 6):
+    def to_async_config(self, workers: int = 6, session_store=None):
         """Return an ``AsyncCrawlConfig`` populated from this run config.
 
         Args:
-            workers: Number of concurrent workers (default: 6)
+            workers:       Number of concurrent workers (default: 6)
+            session_store: Optional ``SessionStore`` from new modular auth.
+                           If provided, takes priority over legacy auth_config.
         """
         from .async_crawler import AsyncCrawlConfig
+
+        # Build optional legacy AuthConfig from login fields (backward compat)
+        auth_config = None
+        if not session_store and (self.login_url or self.username or self.login_strategy != "standard"):
+            from .auth.session_manager import AuthConfig
+            auth_config = AuthConfig(
+                login_url=self.login_url or "",
+                username=self.username or "",
+                password=self.password or "",
+                auth_state_path=self.auth_state_file or "auth_state.json",
+                force_login=self.force_login,
+                login_strategy=self.login_strategy,
+            )
+            # Resolve credentials from environment if not provided inline
+            auth_config.resolve_credentials()
+
         cfg = AsyncCrawlConfig(
             max_pages=self.max_pages,
             max_depth=self.max_depth,
@@ -159,6 +200,11 @@ class CrawlerRunConfig:
             enable_static_fallback=self.enable_static_fallback,
             deny_patterns=list(self.deny_patterns),
             strip_all_queries=self.strip_all_queries,
+            auth_config=auth_config,
+            session_store=session_store,
+            max_retries_per_page=self.max_retries_per_page,
+            screenshot_on_failure=self.screenshot_on_failure,
+            humanized_delay=self.humanized_delay,
         )
         return cfg
 
@@ -199,4 +245,10 @@ class CrawlerRunConfig:
             logger.info(f"  Deny Patterns:    {len(self.deny_patterns)} configured")
         if self.strip_all_queries:
             logger.info(f"  Query Strings:    stripped (all)")
+        if self.login_url:
+            logger.info(f"  Auth:             Enabled (login_url configured)")
+            logger.info(f"  Login Strategy:   {self.login_strategy}")
+            logger.info(f"  Auth State:       {self.auth_state_file or 'auth_state.json'}")
+            if self.force_login:
+                logger.info(f"  Force Login:      Yes (ignore saved session)")
         logger.info("=" * 60)
