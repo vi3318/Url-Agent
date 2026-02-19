@@ -474,9 +474,9 @@ Examples:
                 logger.info("[SAP] Auto-increased timeout to 60s (UI5 pages need extra time)")
             # Reduce workers to avoid resource contention — 6 parallel
             # Playwright contexts loading heavy UI5 bundles overwhelm the machine
-            if cfg._workers > 3:
-                cfg._workers = 3
-                logger.info("[SAP] Reduced workers to 3 (heavy UI5 pages cause contention with more)")
+            # if cfg._workers > 3:
+            #     cfg._workers = 3
+            #     logger.info("[SAP] Reduced workers to 3 (heavy UI5 pages cause contention with more)")
             # Disable static fallback — SAP SPA pages have no content
             # in static HTML and the fallback has no auth cookies anyway
             cfg.enable_static_fallback = False

@@ -37,6 +37,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from unittest import result
 from urllib.parse import urlparse, urljoin
 from pathlib import Path
 
@@ -491,7 +492,12 @@ class AsyncDocCrawler:
             # Brief settle time to let in-flight Playwright futures resolve
             # before we close the browser (prevents "Future exception never retrieved")
             await asyncio.sleep(0.5)
-            await self._close_browser()
+            try:
+                await self._close_browser()
+            except Exception as e:
+                if 'TargetClosedError' not in str(e):
+                    logger.error(f"Error closing browser: {e}")
+    # else: suppress harmless TargetClosedError
 
         # Filter skipped pages
         good_pages = [p for p in self._pages if not p.skipped]
@@ -1367,8 +1373,10 @@ class AsyncDocCrawler:
             # ── Near-duplicate detection ────────────────────────────
             # Fingerprint = title + first 200 chars of text. If another page
             # with the same fingerprint was already crawled, skip this one.
+            from urllib.parse import urlparse
             if result.word_count > 0:
-                fp_text = (result.title or '') + '|' + text_stripped[:200]
+                url_path = urlparse(normalized).path
+                fp_text = (result.title or '') + '|' + text_stripped[:1000] + '|' + url_path
                 import hashlib
                 fp = hashlib.md5(fp_text.encode('utf-8', errors='replace')).hexdigest()
                 async with self._pages_lock:
