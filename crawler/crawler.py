@@ -8,6 +8,7 @@ import logging
 import time
 import json
 import csv
+import platform
 from typing import List, Dict, Set, Optional, Callable, Generator
 from dataclasses import dataclass, field
 from collections import deque
@@ -28,6 +29,17 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _detect_platform() -> str:
+    """Return the sec-ch-ua-platform value for the current OS."""
+    system = platform.system()
+    if system == "Darwin":
+        return "macOS"
+    elif system == "Windows":
+        return "Windows"
+    else:
+        return "Linux"
 
 
 @dataclass
@@ -178,7 +190,7 @@ class WebCrawler:
             'Cache-Control': 'max-age=0',
             'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
             'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"macOS"',
+            'sec-ch-ua-platform': f'"{_detect_platform()}"',
         })
         return session
     

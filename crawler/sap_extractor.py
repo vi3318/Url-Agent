@@ -24,6 +24,7 @@ import logging
 import re
 import time
 from typing import Dict, List, Optional, Tuple
+from urllib.parse import urljoin
 
 from playwright.async_api import Page
 from playwright.async_api import TimeoutError as PlaywrightTimeout
@@ -446,6 +447,218 @@ async def detect_sap_session_expiry(page: Page, intended_url: str = "") -> bool:
     return False
 
 
+async def discover_sap_tile_routes(
+    page: Page,
+    base_origin: str,
+    current_url: str,
+) -> List[str]:
+    """Discover additional routes by clicking SAP GenericTiles and Cards.
+
+    SAP for Me uses `.sapMGT` (GenericTile) and `.sapFCard` (Integration
+    Card) components for dashboard navigation.  These tiles often use JS
+    press handlers instead of `<a href>` so normal link extraction misses
+    them.
+
+    Strategy:
+        1. Gather all tile/card elements
+        2. For each: click → wait for URL change → record new URL → go back
+        3. Skip tiles that open external sites or overlays
+
+    Returns:
+        List of newly discovered same-origin URLs.
+    """
+    discovered: List[str] = []
+    try:
+        # Get total count of clickable tiles/cards
+        tile_count = await page.evaluate("""
+            () => {
+                const tiles = document.querySelectorAll(
+                    '.sapMGT, .sapFCard, .sapMGenericTile, ' +
+                    '.sapMTile, .sapFCardHeader'
+                );
+                // Filter to visible tiles only
+                return Array.from(tiles).filter(t => {
+                    const r = t.getBoundingClientRect();
+                    return r.width > 0 && r.height > 0;
+                }).length;
+            }
+        """)
+        if not tile_count:
+            return discovered
+
+        logger.info(f"[SAP-TILES] Found {tile_count} clickable tiles/cards")
+
+        original_url = page.url
+        seen = set()
+
+        for i in range(min(tile_count, 20)):  # Cap at 20 to avoid infinite loops
+            try:
+                # Re-query each iteration (DOM may have changed after navigation)
+                tile = await page.evaluate("""
+                    (index) => {
+                        const tiles = Array.from(document.querySelectorAll(
+                            '.sapMGT, .sapFCard, .sapMGenericTile, ' +
+                            '.sapMTile, .sapFCardHeader'
+                        )).filter(t => {
+                            const r = t.getBoundingClientRect();
+                            return r.width > 0 && r.height > 0;
+                        });
+                        if (index < tiles.length) {
+                            const t = tiles[index];
+                            return {
+                                id: t.id || '',
+                                text: (t.textContent || '').trim().substring(0, 80),
+                                tag: t.tagName,
+                            };
+                        }
+                        return null;
+                    }
+                """, i)
+
+                if not tile:
+                    break
+
+                tile_text = tile.get('text', '')
+                # Skip tiles we've already processed
+                if tile_text in seen:
+                    continue
+                seen.add(tile_text)
+
+                # Click the tile
+                try:
+                    await page.evaluate("""
+                        (index) => {
+                            const tiles = Array.from(document.querySelectorAll(
+                                '.sapMGT, .sapFCard, .sapMGenericTile, ' +
+                                '.sapMTile, .sapFCardHeader'
+                            )).filter(t => {
+                                const r = t.getBoundingClientRect();
+                                return r.width > 0 && r.height > 0;
+                            });
+                            if (index < tiles.length) {
+                                tiles[index].click();
+                            }
+                        }
+                    """, i)
+
+                    # Wait for potential navigation
+                    await asyncio.sleep(1.5)
+
+                    new_url = page.url
+                    if (new_url != original_url
+                            and new_url != current_url
+                            and base_origin in new_url
+                            and new_url not in discovered):
+                        discovered.append(new_url)
+                        logger.debug(
+                            f"[SAP-TILES] Tile '{tile_text[:30]}' → {new_url}"
+                        )
+
+                    # Navigate back to the original page
+                    if page.url != original_url:
+                        await page.goto(
+                            original_url,
+                            wait_until='domcontentloaded',
+                            timeout=15000,
+                        )
+                        await asyncio.sleep(2.0)
+
+                except PlaywrightTimeout:
+                    # Navigation timed out — go back
+                    if page.url != original_url:
+                        await page.goto(
+                            original_url,
+                            wait_until='domcontentloaded',
+                            timeout=15000,
+                        )
+                        await asyncio.sleep(1.5)
+                except Exception as e:
+                    logger.debug(f"[SAP-TILES] Tile click error (#{i}): {e}")
+                    if page.url != original_url:
+                        try:
+                            await page.goto(
+                                original_url,
+                                wait_until='domcontentloaded',
+                                timeout=15000,
+                            )
+                            await asyncio.sleep(1.5)
+                        except Exception:
+                            break
+
+            except Exception:
+                continue
+
+        if discovered:
+            logger.info(
+                f"[SAP-TILES] Discovered {len(discovered)} new routes: "
+                + ', '.join(d.split('/')[-1] or d for d in discovered[:8])
+            )
+    except Exception as e:
+        logger.debug(f"[SAP-TILES] Discovery error: {e}")
+
+    return discovered
+
+
+async def extract_sap_card_content(page: Page) -> str:
+    """Extract text content from SAP UI5 Cards and Tiles.
+
+    SAP for Me dashboard pages use Integration Cards (`.sapFCard`) and
+    GenericTiles (`.sapMGT`) which may not be reached by standard
+    innerText extraction if they're inside shadow roots or custom
+    rendering containers.
+
+    Returns:
+        Combined text from all visible cards/tiles.
+    """
+    try:
+        return await page.evaluate("""
+            () => {
+                const parts = [];
+                const seen = new Set();
+
+                // Card headers and content
+                document.querySelectorAll(
+                    '.sapFCard, .sapMGT, .sapMGenericTile'
+                ).forEach(card => {
+                    const text = (card.innerText || '').trim();
+                    if (text && text.length > 3 && !seen.has(text)) {
+                        seen.add(text);
+                        parts.push(text);
+                    }
+                });
+
+                // Object page sections
+                document.querySelectorAll(
+                    '.sapUxAPObjectPageSection, ' +
+                    '.sapUxAPObjectPageSubSection'
+                ).forEach(section => {
+                    const text = (section.innerText || '').trim();
+                    if (text && text.length > 10 && !seen.has(text)) {
+                        seen.add(text);
+                        parts.push(text);
+                    }
+                });
+
+                // Dynamic page content sections
+                document.querySelectorAll(
+                    '.sapFDynamicPageContent .sapMFlexBox, ' +
+                    '.sapFDynamicPageContent .sapMVBox'
+                ).forEach(box => {
+                    const text = (box.innerText || '').trim();
+                    if (text && text.length > 10 && !seen.has(text)) {
+                        seen.add(text);
+                        parts.push(text);
+                    }
+                });
+
+                return parts.join('\\n\\n');
+            }
+        """)
+    except Exception as e:
+        logger.debug(f"[SAP-CARDS] Content extraction error: {e}")
+        return ''
+
+
 def get_sap_content_selectors() -> List[str]:
     """Return SAP-specific content selectors for extraction."""
     return list(_SAP_CONTENT_SELECTORS)
@@ -566,3 +779,174 @@ async def _extract_html_table(element) -> Dict:
         return data
     except Exception:
         return {}
+
+
+# ---------------------------------------------------------------------------
+# SAP Help Center (help.sap.com) — static HTML extraction
+# ---------------------------------------------------------------------------
+# SAP Help pages are traditional server-rendered HTML, NOT UI5 SPAs.
+# They use `javascript:call_link('filename.htm')` for navigation,
+# `span.qtextgrey`/`span.qtext` for code blocks, and `span.h2` for titles.
+# BeautifulSoup handles these pages much better than Playwright.
+# ---------------------------------------------------------------------------
+
+def is_sap_help_url(url: str) -> bool:
+    """Check if a URL is an SAP Help Center page (static HTML docs)."""
+    return 'help.sap.com' in url.lower()
+
+
+def extract_sap_help_links(html: str, base_url: str) -> List[str]:
+    """Extract links from SAP Help pages, including javascript:call_link() refs.
+
+    SAP Help Center uses `javascript:call_link('filename.htm')` instead
+    of normal anchor hrefs. This function extracts those filenames and
+    converts them to absolute URLs.
+    """
+    links: List[str] = []
+    seen: set = set()
+
+    # Pattern 1: javascript:call_link('filename.htm')
+    js_pattern = re.compile(
+        r"javascript:call_link\(['\"]([^'\"]+\.htm)['\"]", re.IGNORECASE
+    )
+    for match in js_pattern.finditer(html):
+        filename = match.group(1)
+        abs_url = urljoin(base_url, filename)
+        if abs_url not in seen:
+            seen.add(abs_url)
+            links.append(abs_url)
+
+    # Pattern 2: Regular href links to .htm files
+    href_pattern = re.compile(r'href=["\']([^"\']*\.htm(?:l)?)["\']', re.IGNORECASE)
+    for match in href_pattern.finditer(html):
+        href = match.group(1)
+        if href.startswith('javascript:'):
+            continue
+        abs_url = urljoin(base_url, href)
+        if abs_url not in seen:
+            seen.add(abs_url)
+            links.append(abs_url)
+
+    return links
+
+
+def extract_sap_help_content(html: str, page_url: str) -> Dict:
+    """Extract content from SAP Help static HTML pages using BeautifulSoup.
+
+    Handles SAP Help page structure:
+    - Title from span.h2 or h1
+    - ABAP code blocks from span.qtextgrey / span.qtext / pre / code
+    - Documentation text from the page body
+    """
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        logger.warning("[SAP-HELP] BeautifulSoup not available")
+        return {}
+
+    soup = BeautifulSoup(html, 'lxml' if _has_lxml() else 'html.parser')
+
+    # ── Title extraction ──
+    title = ""
+    # Try <title> first (most reliable on SAP Help)
+    t = soup.find('title')
+    if t:
+        title = t.get_text(strip=True)
+    # Then try h1
+    if not title:
+        h1 = soup.find('h1')
+        if h1:
+            title = h1.get_text(strip=True)
+    # Then try span.h2 (SAP Help uses these for section headings)
+    h2_spans = soup.find_all('span', class_='h2')
+    if not title and h2_spans:
+        for h2 in reversed(h2_spans):
+            text = h2.get_text(strip=True)
+            # Skip single-char alphabet section headers and boilerplate
+            if text and len(text) > 3 and text not in (
+                'Description', 'Note', 'Source Code', 'Example'
+            ):
+                title = text
+                break
+
+    # ── Code block extraction ──
+    code_blocks: List[str] = []
+
+    for class_name in ('qtextgrey', 'qtext'):
+        for span in soup.find_all('span', class_=class_name):
+            code_html = str(span)
+            code_html = re.sub(r'<br\s*/?>', '\n', code_html)
+            code_html = code_html.replace('&nbsp;', ' ')
+            code_html = code_html.replace('\xa0', ' ')  # non-breaking space
+            code_html = code_html.replace('&lt;', '<')
+            code_html = code_html.replace('&gt;', '>')
+            code_html = code_html.replace('&amp;', '&')
+            code_html = code_html.replace('&quot;', '"')
+            code_html = re.sub(r'<[^>]+>', '', code_html)
+            code = code_html.strip()
+            if code and len(code) > 30:
+                code_blocks.append(code)
+
+    if not code_blocks:
+        for pre in soup.find_all('pre'):
+            code = pre.get_text()
+            if code.strip() and len(code.strip()) > 30:
+                code_blocks.append(code.strip())
+        for code_tag in soup.find_all('code'):
+            code = code_tag.get_text()
+            if code.strip() and len(code.strip()) > 30:
+                code_blocks.append(code.strip())
+
+    # ── Text content extraction ──
+    for tag in soup.find_all(['script', 'style', 'nav', 'footer', 'noscript']):
+        tag.decompose()
+
+    main = None
+    for sel in ['#main-content', '.content-area', 'main', 'article',
+                '#content', 'body']:
+        main = soup.select_one(sel)
+        if main:
+            break
+
+    text_content = ""
+    if main:
+        text_content = main.get_text(separator='\n', strip=True)
+        text_content = re.sub(r'\n{3,}', '\n\n', text_content)
+        text_content = re.sub(r' {2,}', ' ', text_content)
+
+    # ── Headings ──
+    headings: Dict[str, List[str]] = {}
+    for lvl in range(1, 7):
+        hs = soup.find_all(f'h{lvl}')
+        if hs:
+            headings[f'h{lvl}'] = [
+                h.get_text(strip=True) for h in hs if h.get_text(strip=True)
+            ]
+    if h2_spans:
+        h2_texts = [h.get_text(strip=True) for h in h2_spans
+                     if h.get_text(strip=True)]
+        if 'h2' in headings:
+            headings['h2'].extend(h2_texts)
+        else:
+            headings['h2'] = h2_texts
+
+    # Append code blocks to text_content
+    if code_blocks:
+        code_section = "\n\n--- Code ---\n\n" + "\n\n".join(code_blocks)
+        text_content = (text_content + code_section).strip()
+
+    return {
+        'title': title,
+        'text': text_content,
+        'code_blocks': code_blocks,
+        'headings': headings,
+    }
+
+
+def _has_lxml() -> bool:
+    """Check if lxml is available."""
+    try:
+        import lxml  # noqa: F401
+        return True
+    except ImportError:
+        return False

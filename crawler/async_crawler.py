@@ -59,6 +59,11 @@ from .sap_extractor import (
     extract_sap_tables,
     detect_sap_session_expiry,
     get_sap_content_selectors,
+    discover_sap_tile_routes,
+    extract_sap_card_content,
+    is_sap_help_url,
+    extract_sap_help_links,
+    extract_sap_help_content,
 )
 
 logger = logging.getLogger(__name__)
@@ -150,6 +155,8 @@ class AsyncCrawlConfig:
         '.markdown-section', '.md-content', '.rst-content', '.document',
         '.wiki-content', '.article-body', '.MuiContainer-root',
         '.chakra-container', '.slds-template__container',
+        # Oracle Help Center (OHC / JET) content containers
+        '#publicationContent', 'article.ohc-grid-type',
         # Oracle / JS-heavy tree sites — the tree IS the content after
         # expanding all [aria-expanded="false"] items.
         '[role="tree"]',
@@ -160,6 +167,13 @@ class AsyncCrawlConfig:
     exclude_selectors: List[str] = field(default_factory=lambda: [
         'nav', 'header', 'footer', '.sidebar', '.toc',
         '.breadcrumb', 'script', 'style', 'noscript',
+        # Social / feedback / share widgets
+        '.social-share', '.share-buttons', 'oj-menu-button',
+        '#socialMediaButton', '.navigation-side-bar',
+        '.feedback-widget', '[class*="feedback-widget"]',
+        # Cookie/consent banners
+        '#consent_blackbar', '#trustarc-banner-overlay',
+        '#onetrust-banner-sdk', '#CybotCookiebotDialog',
     ])
     link_selectors: List[str] = field(default_factory=lambda: [
         'a[href]', '.toc-link[href]', '.nav-link[href]',
@@ -619,7 +633,13 @@ class AsyncDocCrawler:
 
                 if page_result:
                     async with self._pages_lock:
-                        self._pages.append(page_result)
+                        # Re-check limit under lock to prevent overshoot
+                        good_count = sum(1 for p in self._pages if not p.skipped)
+                        if good_count >= self.config.max_pages and not page_result.skipped:
+                            # Already at limit — drop this page
+                            logger.info(f"[LIMIT] Dropping {url[:60]} — page limit reached")
+                        else:
+                            self._pages.append(page_result)
 
                     # Enqueue discovered links (including from skipped pages
                     # that still discovered navigation links).
@@ -1018,8 +1038,63 @@ class AsyncDocCrawler:
                 logger.info(f"[SAP-UI5] Detected UI5/Fiori page: {normalized[:60]}")
                 await wait_for_ui5_ready(page, timeout_ms=self.config.timeout)
 
-                # Extra wait for SAP for Me SPA rendering (JS-heavy)
+                # Wait for SAP cards/tiles to finish loading data.
+                # Cards fetch data asynchronously after UI5 core is ready.
+                try:
+                    await page.wait_for_function(
+                        """
+                        () => {
+                            // Check that no busy indicators are active
+                            const busy = document.querySelectorAll(
+                                '.sapUiLocalBusyIndicator:not([style*="display: none"]), '
+                                + '.sapMBusyDialog:not([style*="display: none"])'
+                            );
+                            if (busy.length > 0) return false;
+                            // Check that at least some content has rendered
+                            const content = document.querySelector(
+                                '.sapFDynamicPageContent, .sapMPageContent, '
+                                + '.sapMPage, #content'
+                            );
+                            return content && (content.innerText || '').trim().length > 20;
+                        }
+                        """,
+                        timeout=8000,
+                    )
+                except Exception:
+                    pass
+                # Extra settle time for late-loading cards
                 await asyncio.sleep(2.0)
+
+                # ── SPA-level 404 / error detection ─────────────────
+                # SAP SPAs return HTTP 200 even for missing routes, but
+                # the rendered content shows error messages.
+                try:
+                    spa_title = await page.title()
+                    spa_body_snippet = await page.evaluate(
+                        "() => (document.body?.innerText || '').substring(0, 500).toLowerCase()"
+                    )
+                    error_indicators = [
+                        'page not found', '404', 'not available',
+                        'access denied', 'forbidden', 'unauthorized',
+                        'no permission', 'error occurred',
+                    ]
+                    if any(ind in (spa_title or '').lower() or ind in spa_body_snippet
+                           for ind in error_indicators):
+                        logger.warning(
+                            f"[SPA-404] {normalized[:70]} — page content "
+                            f"indicates error/not-found, skipping"
+                        )
+                        timing.status = "failed"
+                        timing.total_ms = (time.monotonic() - t_start) * 1000
+                        await self.monitor.record_page(timing)
+                        self._errors.append({
+                            'url': normalized,
+                            'error': 'SPA 404/error page detected',
+                            'depth': depth,
+                        })
+                        return None
+                except Exception:
+                    pass
 
                 # Scroll virtual tables to render all rows
                 table_rows = await scroll_virtual_table(page)
@@ -1109,7 +1184,7 @@ class AsyncDocCrawler:
                         existing.add(n)
 
             # Supplement with SPA sidebar navigation (SAP for Me, etc.)
-            if is_sap_ui5 and len(links) < 5:
+            if is_sap_ui5:
                 spa_links = await self._discover_spa_navigation(
                     page, normalized
                 )
@@ -1121,6 +1196,26 @@ class AsyncDocCrawler:
                         # Also widen scope if needed
                         if self._scope_filter:
                             self._scope_filter.widen_scope(sl)
+
+            # ── SAP Help Center javascript:call_link() extraction ───
+            is_sap_help = is_sap_help_url(normalized)
+            if is_sap_help:
+                try:
+                    page_html = await page.content()
+                    sap_help_links = extract_sap_help_links(page_html, normalized)
+                    existing = set(links)
+                    added = 0
+                    for sl in sap_help_links:
+                        n = self.url_normalizer.normalize(sl)
+                        if n and n not in existing:
+                            if self._scope_filter and self._scope_filter.accept(n):
+                                links.append(n)
+                                existing.add(n)
+                                added += 1
+                    if added:
+                        logger.info(f"[SAP-HELP] Extracted {added} javascript:call_link() links")
+                except Exception as e:
+                    logger.debug(f"[SAP-HELP] Link extraction error: {e}")
 
             # ── Extract content (modifies live DOM: removes nav, etc.) ──
             t_extract_start = time.monotonic()
@@ -1144,11 +1239,87 @@ class AsyncDocCrawler:
                         for row in rows[:200]:  # cap at 200 rows
                             content['text'] += '\n' + ' | '.join(row)
 
+                # Supplement with card/tile text if main extraction was thin
+                current_wc = len(content['text'].split())
+                if current_wc < 300:
+                    card_text = await extract_sap_card_content(page)
+                    card_wc = len(card_text.split()) if card_text else 0
+                    if card_wc > current_wc:
+                        logger.info(
+                            f"[SAP-CARDS] Supplementing: {card_wc} words "
+                            f"from cards (DOM had {current_wc})"
+                        )
+                        content['text'] = card_text
+
+            # ── SAP Help Center content enhancement ─────────────────
+            # help.sap.com pages are static HTML — BeautifulSoup extracts
+            # content (especially code blocks) much better than Playwright.
+            if is_sap_help:
+                try:
+                    page_html = page_html if 'page_html' in dir() else await page.content()
+                    sap_content = extract_sap_help_content(page_html, normalized)
+                    if sap_content:
+                        # Use BS4 title if Playwright didn't find one
+                        if sap_content.get('title') and not content.get('title'):
+                            content['title'] = sap_content['title']
+                        # Use BS4 text if it's richer than Playwright's
+                        bs4_text = sap_content.get('text', '')
+                        pw_wc = len(content.get('text', '').split())
+                        bs4_wc = len(bs4_text.split())
+                        if bs4_wc > pw_wc * 1.2:  # BS4 has 20%+ more content
+                            content['text'] = bs4_text
+                            logger.info(
+                                f"[SAP-HELP] BS4 extraction: {bs4_wc} words "
+                                f"(vs Playwright {pw_wc})"
+                            )
+                        # Add code blocks
+                        if sap_content.get('code_blocks'):
+                            content['code_blocks'] = sap_content['code_blocks']
+                        # Merge headings
+                        if sap_content.get('headings'):
+                            for k, v in sap_content['headings'].items():
+                                if k not in content.get('headings', {}):
+                                    content.setdefault('headings', {})[k] = v
+                except Exception as e:
+                    logger.debug(f"[SAP-HELP] Content enhancement error: {e}")
+
             # Breadcrumb and section path
             breadcrumb = await self._extract_breadcrumb(page)
             current_section = await self._extract_section_path(page) or section_path
 
             timing.extract_ms = (time.monotonic() - t_extract_start) * 1000
+
+            # ── Final SAP text cleanup (applies to ALL content sources) ──
+            # This runs after card supplement, table supplement, etc.
+            if is_sap_ui5 and content['text']:
+                _sap_final_junk = [
+                    'Restricted Card Content',
+                    "It looks like you're not authorized to see the content on this card.",
+                    "It looks like you are not authorized to see the content on this card.",
+                    'Request Authorization',
+                    'Missing PO Numbers',
+                    'Seems our application is having a small hiccup at the moment.',
+                    'Some resources of the application you tried to access failed to load.',
+                    'Header Title (Not Shown)',
+                    'Short Header Subtitle',
+                    'Any Group Title 1',
+                    'Any Group Title 2',
+                    'Collapse Header',
+                    'Back to Home',
+                    'Personalized:',
+                    'Favorite products only',
+                    'Hide Legend',
+                    'Aggregated view',
+                    'Customize Home Page',
+                    'Accept All Cookies',
+                    'Cookie Preferences',
+                    'Manage Cookie Preferences',
+                    'Get Assistance',
+                ]
+                for junk in _sap_final_junk:
+                    content['text'] = content['text'].replace(junk, '')
+                content['text'] = re.sub(r'(?m)^\s*(ON|OFF)\s*$', '', content['text'])
+                content['text'] = re.sub(r'\n{3,}', '\n\n', content['text']).strip()
 
             # Build page result
             result = _PageResult(
@@ -1258,6 +1429,27 @@ class AsyncDocCrawler:
                 f"{result.word_count:,} words, {len(links)} links, "
                 f"{timing.total_ms:.0f}ms"
             )
+
+            # ── SAP tile/card route discovery (AFTER content extraction) ──
+            # Clicking tiles navigates the SPA, which corrupts page state.
+            # We do this AFTER content extraction so the current page's
+            # text is already captured.  Newly found URLs get queued.
+            if is_sap_ui5:
+                try:
+                    base_parsed = urlparse(normalized)
+                    base_origin = f"{base_parsed.scheme}://{base_parsed.netloc}"
+                    tile_urls = await discover_sap_tile_routes(
+                        page, base_origin, normalized
+                    )
+                    for tl in tile_urls:
+                        n = self.url_normalizer.normalize(tl)
+                        if n and n not in set(links):
+                            links.append(n)
+                            result.internal_links.append(n)
+                            if self._scope_filter:
+                                self._scope_filter.widen_scope(n)
+                except Exception as e:
+                    logger.debug(f"[SAP-TILES] Post-extract discovery error: {e}")
 
             # Progress callback
             if self._progress_callback:
@@ -1539,16 +1731,31 @@ class AsyncDocCrawler:
                         // Remove non-content elements from clone
                         const removeSelectors = [
                             'script', 'style', 'noscript', 'svg', 'img',
-                            'nav', '[role="navigation"]', '[role="banner"]',
+                            'nav', 'header', 'footer',
+                            '[role="navigation"]', '[role="banner"]',
+                            '[role="contentinfo"]',
                             '[aria-hidden="true"]',
+                            // Social share / feedback / skip-links
+                            '.social-share', '.share-buttons', '.o-social-icons',
+                            'oj-menu-button', 'oj-menu', '#socialMediaButton',
+                            '#navigationContainer', '.navigation-side-bar',
+                            '.feedback-widget', '[class*="feedback"]',
+                            '.skip-link', '[class*="skip-to"]',
+                            '#u02skip2content',
+                            // Pagination / prev-next navigation
+                            '.prev-next-links', '.pagination',
+                            '[class*="prevnext"]',
                             // Cookie/consent banners
                             '#consent_blackbar', '#trustarc-banner-overlay',
                             '#onetrust-banner-sdk', '#CybotCookiebotDialog',
+                            '#trustarcNoticeFrame',
                             // SAP UI5 navigation and non-content areas
                             '.sapUshellShellHead', '#shell-header',
                             '.sapTntSideNavigation',
                             '.sapUshellShellNavigation',
                             '.sapMShellHeader',
+                            '.sapMeSidebar',
+                            '.sapMeShellHead',
                             // SAP UI5 invisible/hidden text (ARIA labels etc.)
                             '.sapUiInvisibleText',
                             '.sapUiHidden',
@@ -1556,6 +1763,9 @@ class AsyncDocCrawler:
                             // SAP dialogs/overlays/popovers
                             '.help4', '.sapMDialog', '.sapUiBLy',
                             '.sapMPopover', '.sapMMessageToast',
+                            // SAP busy indicators
+                            '.sapUiLocalBusyIndicator',
+                            '.sapMBusyDialog',
                         ];
                         for (const sel of removeSelectors) {
                             clone.querySelectorAll(sel).forEach(el => el.remove());
@@ -1572,13 +1782,56 @@ class AsyncDocCrawler:
             # Clean SAP UI5 placeholder / design-time text
             if pre_exclude_text and is_sap_page:
                 _sap_junk = [
+                    # Design-time / placeholder text
                     'Header Title (Not Shown)',
                     'Short Header Subtitle',
                     'Any Group Title 1',
                     'Any Group Title 2',
                     'Collapse Header',
+                    # Authorization / restricted card messages
+                    'Restricted Card Content',
+                    "It looks like you're not authorized to see the content on this card.",
+                    "It looks like you are not authorized to see the content on this card.",
+                    'Request Authorization',
+                    'Missing PO Numbers',
+                    # Application error messages
+                    'Seems our application is having a small hiccup at the moment.',
+                    'Some resources of the application you tried to access failed to load.',
+                    # Navigation boilerplate
+                    'Back to Home',
+                    'Personalized:',
+                    'Favorite products only',
+                    'Hide Legend',
+                    'Aggregated view',
+                    'Customize Home Page',
+                    # Cookie / consent
+                    'Accept All Cookies',
+                    'Cookie Preferences',
+                    'Manage Cookie Preferences',
                 ]
                 for junk in _sap_junk:
+                    pre_exclude_text = pre_exclude_text.replace(junk, '')
+                # Also remove "ON" / "OFF" standing alone on a line (toggle state)
+                pre_exclude_text = re.sub(
+                    r'(?m)^\s*(ON|OFF)\s*$', '', pre_exclude_text
+                )
+                pre_exclude_text = re.sub(r'\n{3,}', '\n\n', pre_exclude_text).strip()
+
+            # Clean Oracle OHC boilerplate text
+            is_oracle_page_pre = 'oracle.com' in (page_url or page.url).lower()
+            if pre_exclude_text and is_oracle_page_pre:
+                _oracle_junk = [
+                    'Share on LinkedIn', 'Share on X', 'Share on Facebook',
+                    'Share on Email', 'Skip to Content', 'Skip to Search',
+                    'No matching results', 'Try a different search query.',
+                    'Search Unavailable',
+                    'We are making updates to our Search system right now. Please try again later.',
+                    'Was this page helpful?', 'Tell us how to improve',
+                    '© Oracle', 'About Oracle', 'Contact Us',
+                    'Products A-Z', 'Terms of Use & Privacy', 'Ad Choices',
+                    'Previous Page', 'Next Page',
+                ]
+                for junk in _oracle_junk:
                     pre_exclude_text = pre_exclude_text.replace(junk, '')
                 pre_exclude_text = re.sub(r'\n{3,}', '\n\n', pre_exclude_text).strip()
 
@@ -1593,10 +1846,39 @@ class AsyncDocCrawler:
                         '.sapUshellShellHead', '#shell-header',
                         '.sapTntSideNavigation', '.sapMShellHeader',
                         '.sapUshellShellNavigation',
-                        '.sapTntNavLI', '.sapMNav',
+                        '.sapTntNavLI',
+                        # NOTE: .sapMNav is the top-level app container
+                        #       containing ALL content — do NOT exclude it.
+                        '.sapMeSidebar',
                         '[role="navigation"]', '[role="banner"]',
+                        # Cookie consent (specific IDs, not broad class match)
+                        '#consent_blackbar', '#trustarc-banner-overlay',
+                        '#onetrust-banner-sdk', '#CybotCookiebotDialog',
                     ]
                     for s in sap_excludes:
+                        if s not in exclude_list:
+                            exclude_list.append(s)
+
+                # Add Oracle / OHC specific exclude selectors
+                is_oracle_page = 'oracle.com' in (page_url or page.url).lower()
+                if is_oracle_page:
+                    oracle_excludes = [
+                        # Oracle JET social share menus
+                        'oj-menu-button', 'oj-menu', '#socialMediaButton',
+                        '#navigationContainer', '.navigation-side-bar',
+                        # Feedback widget
+                        '.feedback-widget',
+                        # Skip links ("Skip to Content", "Skip to Search")
+                        '#u02skip2content', '.u02nav',
+                        # Search preview containers
+                        '#preview-container', '#no-results-preview',
+                        '#error-results-preview',
+                        # Content notices (copyright/watermark)
+                        '#contentNoticesContainer',
+                        # TrustArc iframe
+                        '#trustarcNoticeFrame',
+                    ]
+                    for s in oracle_excludes:
                         if s not in exclude_list:
                             exclude_list.append(s)
 
@@ -1611,10 +1893,56 @@ class AsyncDocCrawler:
                 text = (await main_content.inner_text()).strip()
                 text = re.sub(r'\n{3,}', '\n\n', text)
                 text = re.sub(r' {2,}', ' ', text)
+
+                # Oracle post-exclude text cleanup
+                if is_oracle_page:
+                    for junk in [
+                        'Share on LinkedIn', 'Share on X', 'Share on Facebook',
+                        'Share on Email', 'Skip to Content', 'Skip to Search',
+                        'No matching results', 'Try a different search query.',
+                        'Search Unavailable',
+                        'We are making updates to our Search system right now. Please try again later.',
+                        'Was this page helpful?', 'Tell us how to improve',
+                        '© Oracle', 'About Oracle', 'Contact Us',
+                        'Products A-Z', 'Terms of Use & Privacy', 'Ad Choices',
+                        'Previous Page', 'Next Page',
+                    ]:
+                        text = text.replace(junk, '')
+                    text = re.sub(r'\n{3,}', '\n\n', text).strip()
+
+                # SAP post-exclude text cleanup
+                if is_sap_page:
+                    for junk in [
+                        'Restricted Card Content',
+                        "It looks like you're not authorized to see the content on this card.",
+                        "It looks like you are not authorized to see the content on this card.",
+                        'Request Authorization',
+                        'Missing PO Numbers',
+                        'Seems our application is having a small hiccup at the moment.',
+                        'Some resources of the application you tried to access failed to load.',
+                        'Header Title (Not Shown)',
+                        'Short Header Subtitle',
+                        'Any Group Title 1',
+                        'Any Group Title 2',
+                        'Collapse Header',
+                        'Back to Home',
+                        'Personalized:',
+                        'Favorite products only',
+                        'Hide Legend',
+                        'Aggregated view',
+                        'Customize Home Page',
+                        'Accept All Cookies',
+                        'Cookie Preferences',
+                        'Manage Cookie Preferences',
+                    ]:
+                        text = text.replace(junk, '')
+                    text = re.sub(r'(?m)^\s*(ON|OFF)\s*$', '', text)
+                    text = re.sub(r'\n{3,}', '\n\n', text).strip()
+
                 content['text'] = text
                 logger.info(f"[EXTRACT] Post-exclude text: {len(text.split())} words")
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning(f"[EXTRACT] Post-exclude error: {exc}")
 
         # Fallback 1: Shadow DOM
         dom_wc = len(content['text'].split())
@@ -1794,13 +2122,15 @@ class AsyncDocCrawler:
     ) -> List[str]:
         """Discover SPA navigation routes from sidebar/nav elements.
 
-        Uses fast JS-based extraction to find URLs from navigation elements
-        without clicking each one (which is slow and error-prone).
+        Uses fast JS-based extraction only — never clicks sidebar/tab
+        items because that navigates the SPA and corrupts state.
 
         Strategy:
             1. Extract href/data attributes from nav elements (instant)
-            2. Intercept router config from window/JS (instant)
-            3. Only click nav items as a last resort (max 5 items)
+            2. SAP sidebar: read text from .sapMeSidebarTextContent,
+               convert to URL paths (text→lowercase, strip '&'/spaces)
+            3. SAP tabs: read text from .sapMITBFilter, convert to
+               sub-routes of the current page's parent path
 
         Returns:
             List of discovered URLs from SPA navigation.
@@ -1809,11 +2139,13 @@ class AsyncDocCrawler:
         base_parsed = urlparse(base_url)
         base_domain = base_parsed.netloc.lower()
         base_origin = f"{base_parsed.scheme}://{base_parsed.netloc}"
+        # Parent path for tab sub-routes (e.g. /getassistance/overview → /getassistance)
+        base_path = base_parsed.path.rstrip('/')
+        parent_path = '/'.join(base_path.split('/')[:-1]) if '/' in base_path.lstrip('/') else base_path
 
         try:
-            # ── Fast path: extract URLs from nav attributes ─────────
             nav_urls = await page.evaluate("""
-                (baseOrigin) => {
+                ({baseOrigin, parentPath}) => {
                     const urls = new Set();
 
                     // 1. Regular <a> links in nav/sidebar areas
@@ -1850,23 +2182,81 @@ class AsyncDocCrawler:
                         }
                     });
 
-                    // 3. SAP for Me specific: sidebar items with data attrs
-                    // (Only trust actual attributes, NOT text-to-URL.)
-                    document.querySelectorAll(
-                        '.sapMeSidebarItem[data-href], ' +
-                        '.sapMeSidebarItem[data-url], ' +
-                        '.sapMeSidebarItem[data-route], ' +
-                        '[class*="SAPforMeNavigationItem"][data-href]'
-                    ).forEach(el => {
-                        const val = el.dataset.href || el.dataset.url ||
-                                    el.dataset.route;
-                        if (val) {
-                            if (val.startsWith('http')) urls.add(val);
-                            else if (val.startsWith('/')) urls.add(baseOrigin + val);
+                    // 3. SAP for Me sidebar: extract text → URL paths
+                    //    Pattern: "Finance & Legal" → /financelegal
+                    const seen = new Set();
+                    document.querySelectorAll('.sapMeSidebarTextContent').forEach(el => {
+                        const t = (el.textContent || '').trim();
+                        if (t && t.length > 1 && t.length < 80 && !seen.has(t)) {
+                            seen.add(t);
+                            const slug = t.toLowerCase()
+                                .replace(/\\s*&\\s*/g, '')
+                                .replace(/\\s+/g, '');
+                            if (slug && slug !== 'status') {
+                                urls.add(baseOrigin + '/' + slug);
+                            }
                         }
                     });
 
-                    // 4. Hash-based routes from URL fragments
+                    // 4. SAP IconTabBar: tab text → sub-routes
+                    //    e.g. "Reporting" tab on /getassistance → /getassistance/reporting
+                    //    Only scan tabs INSIDE the main content area — skip
+                    //    placeholder tabs in the shell header (e.g. "Some Title A").
+                    const tabSeen = new Set();
+                    // Known SAP Shell placeholder tab texts (appear on every page)
+                    const PLACEHOLDER_TABS = new Set([
+                        'some title a', 'other title b', 'shorter c',
+                        'title a', 'title b', 'title c',
+                        'tab 1', 'tab 2', 'tab 3',
+                    ]);
+                    const contentArea = document.querySelector('.sapMPage, #content, .sapMShellContent');
+                    const tabRoot = contentArea || document;
+                    tabRoot.querySelectorAll('.sapMITBFilter').forEach(tab => {
+                        // Skip overflow "More" buttons
+                        if (tab.id && tab.id.includes('overflow')) return;
+                        // Skip tabs inside shell header or shell container
+                        if (tab.closest('.sapUshellShellHead, #shell-header, .sapMShellHeader, .sapUshellShellHeadItm, .sapMeShellHead')) return;
+                        // Get visible text (try .sapMITBText child first)
+                        const textEl = tab.querySelector('.sapMITBText');
+                        let t = textEl
+                            ? (textEl.textContent || '').trim()
+                            : (tab.textContent || '').trim();
+                        if (!t || t === 'More' || t.length < 2 || t.length > 80) return;
+                        // Skip known placeholder tab names
+                        if (PLACEHOLDER_TABS.has(t.toLowerCase())) return;
+                        if (tabSeen.has(t)) return;
+                        tabSeen.add(t);
+                        const slug = t.toLowerCase()
+                            .replace(/\\s*&\\s*/g, '')
+                            .replace(/\\s+/g, '');
+                        if (slug && parentPath) {
+                            urls.add(baseOrigin + parentPath + '/' + slug);
+                        }
+                    });
+
+                    // 5. SAP Link controls (sapMLnk) — often used for
+                    //    "See All", "View Details", etc. inside cards
+                    document.querySelectorAll('.sapMLnk[href], .sapMLink[href]').forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href && href.startsWith('/')) {
+                            urls.add(baseOrigin + href);
+                        } else if (href && href.startsWith('http') && href.includes(baseOrigin)) {
+                            urls.add(href);
+                        }
+                    });
+
+                    // 6. SAP GenericTile / Card link wrappers
+                    document.querySelectorAll(
+                        '.sapMGT a[href], .sapFCard a[href], ' +
+                        '.sapMGenericTile a[href], .sapMTile a[href]'
+                    ).forEach(a => {
+                        const href = a.href;
+                        if (href && href.startsWith('http') && href.includes(new URL(baseOrigin).host)) {
+                            urls.add(href);
+                        }
+                    });
+
+                    // 7. Hash-based routes from URL fragments
                     document.querySelectorAll('a[href^="#"]').forEach(a => {
                         const hash = a.getAttribute('href');
                         if (hash && hash.length > 1 && hash.length < 100) {
@@ -1876,7 +2266,7 @@ class AsyncDocCrawler:
 
                     return Array.from(urls);
                 }
-            """, base_origin)
+            """, {"baseOrigin": base_origin, "parentPath": parent_path})
 
             for url in (nav_urls or []):
                 try:
@@ -1889,99 +2279,11 @@ class AsyncDocCrawler:
 
             if discovered:
                 logger.info(
-                    f"[SPA-NAV] Fast extraction found {len(discovered)} URLs"
+                    f"[SPA-NAV] Discovered {len(discovered)} URLs from "
+                    f"sidebar/tabs/nav: "
+                    + ', '.join(discovered[:8])
+                    + ('...' if len(discovered) > 8 else '')
                 )
-                return discovered
-
-            # ── Slow fallback: click max 5 sidebar items ────────────
-            original_url = page.url
-            nav_items = await page.evaluate("""
-                () => {
-                    const items = [];
-                    document.querySelectorAll(
-                        '.sapMeSidebarItem, .sapTntNavLI, ' +
-                        '[class*="SidebarItem"], [class*="sidebarItem"], ' +
-                        '.sapTntSideNavigation li'
-                    ).forEach((el, idx) => {
-                        const text = (el.textContent || '').trim();
-                        if (text && text.length < 80) {
-                            items.push({
-                                index: idx,
-                                text: text.split('\\n')[0].trim(),
-                            });
-                        }
-                    });
-                    return items.slice(0, 5);  // max 5 items
-                }
-            """)
-
-            if not nav_items:
-                return discovered
-
-            logger.info(
-                f"[SPA-NAV] Clicking {len(nav_items)} sidebar items "
-                f"(fallback): {', '.join(i['text'] for i in nav_items)}"
-            )
-
-            for item in nav_items:
-                try:
-                    item_text = item['text']
-                    el = await page.query_selector(
-                        f'.sapMeSidebarItem:has-text("{item_text}")'
-                    )
-                    if not el:
-                        el = await page.query_selector(
-                            f'[class*="SidebarItem"]:has-text("{item_text}")'
-                        )
-                    if not el:
-                        continue
-
-                    try:
-                        await el.click(timeout=2000)
-                    except Exception:
-                        continue
-
-                    # Brief wait for SPA route change
-                    await asyncio.sleep(0.8)
-                    try:
-                        await page.wait_for_load_state(
-                            'networkidle', timeout=3000
-                        )
-                    except PlaywrightTimeout:
-                        pass
-
-                    new_url = page.url
-                    if (new_url != original_url
-                            and new_url != base_url
-                            and base_domain in new_url.lower()):
-                        normalized = self.url_normalizer.normalize(new_url)
-                        if normalized and normalized not in discovered:
-                            discovered.append(normalized)
-                            logger.info(
-                                f"[SPA-NAV] \"{item_text}\" → {normalized}"
-                            )
-
-                    # Return to original page
-                    if page.url != original_url:
-                        try:
-                            await page.goto(
-                                original_url, timeout=10000, wait_until='load'
-                            )
-                            await asyncio.sleep(0.5)
-                        except Exception:
-                            break  # Can't return, stop clicking
-
-                except Exception:
-                    continue
-
-            # Final navigate back if needed
-            if page.url != original_url:
-                try:
-                    await page.goto(
-                        original_url, timeout=10000, wait_until='load'
-                    )
-                except Exception:
-                    pass
 
         except Exception as e:
             logger.debug(f"[SPA-NAV] Error: {e}")
@@ -2763,6 +3065,28 @@ class AsyncDocCrawler:
                         if norm and self._scope_filter and self._scope_filter.accept(norm):
                             if norm not in internal_links:
                                 internal_links.append(norm)
+
+            # SAP Help Center: extract javascript:call_link() links
+            if is_sap_help_url(url):
+                sap_links = extract_sap_help_links(html, url)
+                existing = set(internal_links)
+                for sl in sap_links:
+                    norm = self.url_normalizer.normalize(sl)
+                    if norm and norm not in existing:
+                        if self._scope_filter and self._scope_filter.accept(norm):
+                            internal_links.append(norm)
+                            existing.add(norm)
+
+                # Also use SAP-specific content extraction
+                sap_content = extract_sap_help_content(html, url)
+                if sap_content:
+                    bs4_text = sap_content.get('text', '')
+                    if len(bs4_text.split()) > len(text_content.split()):
+                        text_content = bs4_text
+                    if sap_content.get('title'):
+                        title = sap_content['title']
+                    if sap_content.get('headings'):
+                        headings.update(sap_content['headings'])
 
             return _PageResult(
                 url=url, title=title, section_path=section_path,

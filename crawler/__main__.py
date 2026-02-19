@@ -463,6 +463,25 @@ Examples:
     # Store workers count on config for async engine
     cfg._workers = getattr(args, 'workers', 6)
 
+    # Auto-tune for SAP UI5 pages (skip for help.sap.com which is static HTML)
+    is_sap_help_site = 'help.sap.com' in url.lower()
+    if session_store and hasattr(session_store, 'handler') and session_store.handler and not is_sap_help_site:
+        handler_name = getattr(session_store.handler, 'portal_name', '')
+        if handler_name == 'SAP':
+            # UI5 framework needs 40-60s to bootstrap and render content
+            if args.timeout <= 20:
+                cfg.timeout_seconds = 60
+                logger.info("[SAP] Auto-increased timeout to 60s (UI5 pages need extra time)")
+            # Reduce workers to avoid resource contention — 6 parallel
+            # Playwright contexts loading heavy UI5 bundles overwhelm the machine
+            if cfg._workers > 3:
+                cfg._workers = 3
+                logger.info("[SAP] Reduced workers to 3 (heavy UI5 pages cause contention with more)")
+            # Disable static fallback — SAP SPA pages have no content
+            # in static HTML and the fallback has no auth cookies anyway
+            cfg.enable_static_fallback = False
+            logger.info("[SAP] Disabled static fallback (useless for SPA pages)")
+
     # Resolve output paths
     has_explicit = args.output_json or args.output_csv or args.output_docx or getattr(args, 'output_rag_json', None) or getattr(args, 'output_rag_jsonl', None)
     if has_explicit:

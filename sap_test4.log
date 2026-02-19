@@ -1,0 +1,666 @@
+17:53:39 | INFO | [AUTH-FACTORY] Detected portal: SAP (from URL: https://me.sap.com/getassistance)
+17:53:39 | INFO | [SAP] Credentials resolved from environment
+17:53:39 | INFO | [AUTH] SAP portal detected — auth enabled
+17:53:39 | INFO | [SAP] Reduced workers to 3 (heavy UI5 pages cause contention with more)
+17:53:39 | INFO | [SAP] Disabled static fallback (useless for SPA pages)
+17:53:39 | INFO | ============================================================
+17:53:39 | INFO | CRAWL RUN CONFIG
+17:53:39 | INFO | ============================================================
+17:53:39 | INFO |   URL:              https://me.sap.com/getassistance
+17:53:39 | INFO |   Mode:             auto (Playwright + auto-detect)
+17:53:39 | INFO |   Max Depth:        5
+17:53:39 | INFO |   Max Pages:        25
+17:53:39 | INFO |   Timeout:          60s per page
+17:53:39 | INFO |   Max Interactions:  50 per page
+17:53:39 | INFO |   Rate Delay:       0.3s between pages
+17:53:39 | INFO |   JS Enabled:       True
+17:53:39 | INFO |   Static Fallback:  False
+17:53:39 | INFO | ============================================================
+17:53:39 | INFO | [SCOPE] Subtree: me.sap.com/getassistance/**
+17:53:39 | INFO | [SCOPE] Cross-scheme: allowed
+17:53:39 | INFO | =================================================================
+17:53:39 | INFO | ASYNC CRAWL STARTED
+17:53:39 | INFO | Start URL: https://me.sap.com/getassistance
+17:53:39 | INFO | Scope: Subtree: me.sap.com/getassistance/**
+17:53:39 | INFO | Workers: 3
+17:53:39 | INFO | Limits: max_pages=25, max_depth=5
+17:53:39 | INFO | Timeout: 60000ms/page
+17:53:39 | INFO | =================================================================
+17:53:41 | INFO | [SESSION] Valid session: 24 cookies, age 3.1h
+17:53:41 | INFO | [SESSION] Context created from saved session
+17:53:41 | INFO | Async Playwright browser initialized + AUTH (workers=3, blocking=images,fonts,media,analytics)
+17:53:41 | INFO | [0] Crawling: https://me.sap.com/getassistance
+17:53:48 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance
+17:53:48 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:53:51 | INFO | [MONITOR] pages=0 skip=0 fail=0 queue=0 workers=1/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=0ms p95=0ms words/pg=0 elapsed=10s
+17:54:01 | INFO | [MONITOR] pages=0 skip=0 fail=0 queue=0 workers=1/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=0ms p95=0ms words/pg=0 elapsed=20s
+17:54:11 | INFO | [MONITOR] pages=0 skip=0 fail=0 queue=0 workers=1/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=0ms p95=0ms words/pg=0 elapsed=30s
+17:54:11 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:54:14 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:54:16 | INFO | [SAP-UI5] Table scroll complete: 9 rows after 3 scrolls
+17:54:16 | INFO | [SAP-UI5] Virtual table: 9 rows rendered
+17:54:20 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:54:20 | INFO | [SCOPE] Widening: /getassistance → /
+17:54:20 | INFO | [EXTRACT] Main content: 925 chars before extraction
+17:54:20 | INFO | [EXTRACT] Pre-exclude text: 85 words
+17:54:20 | INFO | [EXTRACT] Post-exclude text: 103 words
+17:54:20 | INFO | [OK] https://me.sap.com/getassistance — 103 words, 21 links, 39362ms
+17:54:20 | INFO | [1] Crawling: https://me.sap.com/getassistance/overview
+17:54:20 | INFO | [1] Crawling: https://me.sap.com/home
+17:54:20 | INFO | [1] Crawling: https://me.sap.com/calendar
+17:54:21 | INFO | [MONITOR] pages=1 skip=0 fail=0 queue=16 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=39362ms p95=39362ms words/pg=103 elapsed=40s
+17:54:31 | INFO | [MONITOR] pages=1 skip=0 fail=0 queue=16 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=39362ms p95=39362ms words/pg=103 elapsed=50s
+17:54:37 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/calendar
+17:54:37 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:54:37 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/overview
+17:54:37 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:54:38 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/home
+17:54:38 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:54:41 | INFO | [MONITOR] pages=1 skip=0 fail=0 queue=16 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=39362ms p95=39362ms words/pg=103 elapsed=60s
+17:54:51 | INFO | [MONITOR] pages=1 skip=0 fail=0 queue=16 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=39362ms p95=39362ms words/pg=103 elapsed=70s
+17:55:00 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:55:00 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:55:01 | INFO | [MONITOR] pages=1 skip=0 fail=0 queue=16 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=39362ms p95=39362ms words/pg=103 elapsed=80s
+17:55:01 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:55:02 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:55:02 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:55:03 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:55:04 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+17:55:04 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+17:55:04 | INFO | [SAP-UI5] Table scroll complete: 9 rows after 3 scrolls
+17:55:04 | INFO | [SAP-UI5] Virtual table: 9 rows rendered
+17:55:06 | INFO | [SAP-UI5] Table scroll complete: 6 rows after 3 scrolls
+17:55:06 | INFO | [SAP-UI5] Virtual table: 6 rows rendered
+17:55:08 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:55:08 | INFO | [SPA-NAV] Discovered 17 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:55:08 | INFO | [EXTRACT] Main content: 925 chars before extraction
+17:55:08 | INFO | [EXTRACT] Main content: 839 chars before extraction
+17:55:08 | INFO | [EXTRACT] Pre-exclude text: 85 words
+17:55:08 | INFO | [EXTRACT] Pre-exclude text: 56 words
+17:55:08 | INFO | [EXTRACT] Post-exclude text: 103 words
+17:55:08 | INFO | [EXTRACT] Post-exclude text: 116 words
+17:55:08 | WARNING | [SKIP] https://me.sap.com/getassistance/overview — near-duplicate of https://me.sap.com/getassistance
+17:55:08 | INFO | [OK] https://me.sap.com/calendar — 116 words, 17 links, 48022ms
+17:55:09 | INFO | [1] Crawling: https://me.sap.com/reporting
+17:55:09 | INFO | [1] Crawling: https://me.sap.com/dashboards
+17:55:09 | INFO | [RETRY] https://me.sap.com/dashboards — attempt 1/2
+17:55:10 | INFO | [SPA-NAV] Discovered 14 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:55:10 | INFO | [EXTRACT] Main content: 535 chars before extraction
+17:55:10 | INFO | [EXTRACT] Pre-exclude text: 51 words
+17:55:10 | INFO | [EXTRACT] Post-exclude text: 63 words
+17:55:10 | INFO | [OK] https://me.sap.com/home — 63 words, 14 links, 49726ms
+17:55:10 | INFO | [1] Crawling: https://me.sap.com/dashboards
+17:55:10 | INFO | [1] Crawling: https://me.sap.com/financelegal
+17:55:10 | INFO | [1] Crawling: https://me.sap.com/portfolioproducts
+17:55:11 | INFO | [RETRY] https://me.sap.com/portfolioproducts — attempt 1/2
+17:55:11 | INFO | [MONITOR] pages=3 skip=1 fail=3 queue=15 workers=3/3 speed=0.2 p/s (rolling) 0.0 p/s (overall) avg=26609ms p95=49726ms words/pg=94 elapsed=90s
+17:55:12 | INFO | [1] Crawling: https://me.sap.com/portfolioproducts
+17:55:12 | INFO | [1] Crawling: https://me.sap.com/servicessupport
+17:55:21 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.2 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=100s
+17:55:31 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.2 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=110s
+17:55:41 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=120s
+17:55:51 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=130s
+17:56:02 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=141s
+17:56:06 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/reporting
+17:56:06 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:56:07 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal
+17:56:07 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:56:12 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=151s
+17:56:13 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport
+17:56:13 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:56:22 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=161s
+17:56:29 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:56:30 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:56:32 | INFO | [MONITOR] pages=3 skip=1 fail=4 queue=14 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=23324ms p95=49726ms words/pg=94 elapsed=171s
+17:56:32 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:56:35 | INFO | [SAP-UI5] Table scroll complete: 5 rows after 3 scrolls
+17:56:35 | INFO | [SAP-UI5] Virtual table: 5 rows rendered
+17:56:35 | INFO | [SPA-NAV] Discovered 14 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:56:35 | INFO | [EXTRACT] Main content: 337 chars before extraction
+17:56:35 | INFO | [EXTRACT] Pre-exclude text: 26 words
+17:56:35 | INFO | [EXTRACT] Post-exclude text: 29 words
+17:56:35 | INFO | [OK] https://me.sap.com/reporting — 29 words, 14 links, 86705ms
+17:56:36 | INFO | [1] Crawling: https://me.sap.com/systemsprovisioning
+17:56:36 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:56:38 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:56:39 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:56:39 | INFO | [EXTRACT] Main content: 1913 chars before extraction
+17:56:39 | INFO | [EXTRACT] Pre-exclude text: 210 words
+17:56:39 | INFO | [EXTRACT] Post-exclude text: 254 words
+17:56:39 | INFO | [OK] https://me.sap.com/financelegal — 254 words, 22 links, 88621ms
+17:56:39 | INFO | [1] Crawling: https://me.sap.com/userscontacts
+17:56:41 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+17:56:41 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+17:56:42 | INFO | [MONITOR] pages=5 skip=1 fail=4 queue=20 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36192ms p95=88621ms words/pg=113 elapsed=181s
+17:56:44 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:56:44 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+17:56:44 | INFO | [EXTRACT] Pre-exclude text: 238 words
+17:56:44 | INFO | [EXTRACT] Post-exclude text: 230 words
+17:56:44 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+17:56:44 | INFO | [OK] https://me.sap.com/servicessupport — 1,003 words, 25 links, 91932ms
+17:56:44 | INFO | [1] Crawling: https://me.sap.com/feedback
+17:56:45 | INFO | [RETRY] https://me.sap.com/feedback — attempt 1/2
+17:56:46 | INFO | [1] Crawling: https://me.sap.com/feedback
+17:56:47 | INFO | [1] Crawling: https://me.sap.com/legal
+17:56:47 | INFO | [RETRY] https://me.sap.com/legal — attempt 1/2
+17:56:48 | INFO | [1] Crawling: https://me.sap.com/legal
+17:56:49 | INFO | [1] Crawling: https://me.sap.com/getassistance/reporting
+17:56:52 | INFO | [MONITOR] pages=6 skip=1 fail=8 queue=28 workers=3/3 speed=0.2 p/s (rolling) 0.0 p/s (overall) avg=30417ms p95=91932ms words/pg=261 elapsed=191s
+17:56:58 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/userscontacts
+17:56:58 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:56:58 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/systemsprovisioning
+17:56:58 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:57:02 | INFO | [MONITOR] pages=6 skip=1 fail=8 queue=28 workers=3/3 speed=0.2 p/s (rolling) 0.0 p/s (overall) avg=30417ms p95=91932ms words/pg=261 elapsed=201s
+17:57:03 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/reporting
+17:57:03 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:57:12 | INFO | [MONITOR] pages=6 skip=1 fail=8 queue=28 workers=3/3 speed=0.2 p/s (rolling) 0.0 p/s (overall) avg=30417ms p95=91932ms words/pg=261 elapsed=211s
+17:57:21 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:57:21 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:57:22 | INFO | [MONITOR] pages=6 skip=1 fail=8 queue=28 workers=3/3 speed=0.0 p/s (rolling) 0.0 p/s (overall) avg=30417ms p95=91932ms words/pg=261 elapsed=221s
+17:57:23 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:57:23 | WARNING | [SPA-404] https://me.sap.com/systemsprovisioning — page content indicates error/not-found, skipping
+17:57:23 | INFO | [RETRY] https://me.sap.com/systemsprovisioning — attempt 1/2
+17:57:24 | INFO | [1] Crawling: https://me.sap.com/systemsprovisioning
+17:57:25 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+17:57:25 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+17:57:26 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:57:28 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:57:29 | INFO | [SPA-NAV] Discovered 16 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:57:29 | INFO | [EXTRACT] Main content: 1047 chars before extraction
+17:57:29 | INFO | [EXTRACT] Pre-exclude text: 113 words
+17:57:30 | INFO | [EXTRACT] Post-exclude text: 129 words
+17:57:30 | INFO | [OK] https://me.sap.com/userscontacts — 129 words, 16 links, 50930ms
+17:57:30 | INFO | [1] Crawling: https://me.sap.com/getassistance/financelegal
+17:57:30 | INFO | [SAP-UI5] Table scroll complete: 6 rows after 3 scrolls
+17:57:30 | INFO | [SAP-UI5] Virtual table: 6 rows rendered
+17:57:32 | INFO | [MONITOR] pages=7 skip=1 fail=9 queue=29 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=32618ms p95=91932ms words/pg=242 elapsed=231s
+17:57:32 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/systemsprovisioning
+17:57:32 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:57:36 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:57:36 | INFO | [EXTRACT] Main content: 801 chars before extraction
+17:57:36 | INFO | [EXTRACT] Pre-exclude text: 57 words
+17:57:37 | INFO | [EXTRACT] Post-exclude text: 69 words
+17:57:37 | INFO | [OK] https://me.sap.com/getassistance/reporting — 69 words, 21 links, 48270ms
+17:57:37 | INFO | [1] Crawling: https://me.sap.com/getassistance/portfolioproducts
+17:57:40 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/financelegal
+17:57:40 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:57:42 | INFO | [MONITOR] pages=8 skip=1 fail=9 queue=28 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=33488ms p95=91932ms words/pg=221 elapsed=241s
+17:57:45 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/portfolioproducts
+17:57:45 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:57:52 | INFO | [MONITOR] pages=8 skip=1 fail=9 queue=28 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=33488ms p95=91932ms words/pg=221 elapsed=251s
+17:57:55 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:57:57 | WARNING | [SPA-404] https://me.sap.com/systemsprovisioning — page content indicates error/not-found, skipping
+17:57:58 | INFO | [1] Crawling: https://me.sap.com/getassistance/servicessupport
+17:58:02 | INFO | [MONITOR] pages=8 skip=1 fail=10 queue=27 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=33493ms p95=91932ms words/pg=221 elapsed=261s
+17:58:03 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:58:04 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/servicessupport
+17:58:04 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:58:05 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:58:07 | INFO | [SAP-UI5] Table scroll complete: 11 rows after 3 scrolls
+17:58:07 | INFO | [SAP-UI5] Virtual table: 11 rows rendered
+17:58:08 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:58:10 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:58:11 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:58:11 | INFO | [EXTRACT] Main content: 1268 chars before extraction
+17:58:11 | INFO | [EXTRACT] Pre-exclude text: 120 words
+17:58:11 | INFO | [EXTRACT] Post-exclude text: 142 words
+17:58:11 | INFO | [OK] https://me.sap.com/getassistance/financelegal — 142 words, 21 links, 40938ms
+17:58:11 | INFO | [1] Crawling: https://me.sap.com/getassistance/systemsprovisioning
+17:58:12 | INFO | [MONITOR] pages=9 skip=1 fail=10 queue=26 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=33865ms p95=91932ms words/pg=212 elapsed=271s
+17:58:13 | INFO | [SAP-UI5] Table scroll complete: 9 rows after 3 scrolls
+17:58:13 | INFO | [SAP-UI5] Virtual table: 9 rows rendered
+17:58:16 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:58:16 | INFO | [EXTRACT] Main content: 925 chars before extraction
+17:58:16 | INFO | [EXTRACT] Pre-exclude text: 85 words
+17:58:16 | INFO | [EXTRACT] Post-exclude text: 103 words
+17:58:17 | WARNING | [SKIP] https://me.sap.com/getassistance/portfolioproducts — near-duplicate of https://me.sap.com/getassistance
+17:58:17 | INFO | [1] Crawling: https://me.sap.com/getassistance/userscontacts
+17:58:18 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/systemsprovisioning
+17:58:18 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:58:22 | INFO | [MONITOR] pages=9 skip=2 fail=10 queue=25 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34134ms p95=88621ms words/pg=212 elapsed=281s
+17:58:24 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/userscontacts
+17:58:24 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:58:27 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:58:29 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:58:32 | INFO | [SAP-UI5] Table scroll complete: 7 rows after 3 scrolls
+17:58:32 | INFO | [SAP-UI5] Virtual table: 7 rows rendered
+17:58:32 | INFO | [MONITOR] pages=9 skip=2 fail=10 queue=25 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34134ms p95=88621ms words/pg=212 elapsed=291s
+17:58:35 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:58:35 | INFO | [EXTRACT] Main content: 846 chars before extraction
+17:58:35 | INFO | [EXTRACT] Pre-exclude text: 70 words
+17:58:36 | INFO | [EXTRACT] Post-exclude text: 84 words
+17:58:36 | INFO | [OK] https://me.sap.com/getassistance/servicessupport — 84 words, 21 links, 38083ms
+17:58:36 | INFO | [1] Crawling: https://me.sap.com/getassistance/cross-capabilities
+17:58:41 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:58:42 | INFO | [MONITOR] pages=10 skip=2 fail=10 queue=24 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34313ms p95=88621ms words/pg=199 elapsed=301s
+17:58:43 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:58:43 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/getassistance/cross-capabilities
+17:58:43 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:58:45 | INFO | [SAP-UI5] Table scroll complete: 12 rows after 3 scrolls
+17:58:45 | INFO | [SAP-UI5] Virtual table: 12 rows rendered
+17:58:47 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:58:49 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:58:49 | INFO | [EXTRACT] Main content: 1642 chars before extraction
+17:58:49 | INFO | [EXTRACT] Pre-exclude text: 191 words
+17:58:49 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:58:49 | INFO | [EXTRACT] Post-exclude text: 215 words
+17:58:49 | INFO | [OK] https://me.sap.com/getassistance/systemsprovisioning — 215 words, 21 links, 37766ms
+17:58:49 | INFO | [2] Crawling: https://me.sap.com/calendar/calendar
+17:58:51 | INFO | [SAP-UI5] Table scroll complete: 9 rows after 3 scrolls
+17:58:51 | INFO | [SAP-UI5] Virtual table: 9 rows rendered
+17:58:52 | INFO | [MONITOR] pages=11 skip=2 fail=10 queue=23 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34463ms p95=88621ms words/pg=201 elapsed=311s
+17:58:55 | INFO | [SPA-NAV] Discovered 21 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:58:55 | INFO | [EXTRACT] Main content: 1110 chars before extraction
+17:58:55 | INFO | [EXTRACT] Pre-exclude text: 102 words
+17:58:55 | INFO | [EXTRACT] Post-exclude text: 120 words
+17:58:55 | INFO | [OK] https://me.sap.com/getassistance/userscontacts — 120 words, 21 links, 38609ms
+17:58:56 | INFO | [2] Crawling: https://me.sap.com/calendar/maintenancedeliveries
+17:58:56 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/calendar/calendar
+17:58:56 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:59:02 | INFO | [MONITOR] pages=12 skip=2 fail=10 queue=22 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34636ms p95=88621ms words/pg=194 elapsed=321s
+17:59:03 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/calendar/maintenancedeliveries
+17:59:03 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:59:06 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:59:08 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:59:10 | INFO | [SAP-UI5] Table scroll complete: 9 rows after 3 scrolls
+17:59:10 | INFO | [SAP-UI5] Virtual table: 9 rows rendered
+17:59:12 | INFO | [MONITOR] pages=12 skip=2 fail=10 queue=22 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34636ms p95=88621ms words/pg=194 elapsed=331s
+17:59:14 | INFO | [SPA-NAV] Discovered 16 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/getassistance, https://me.sap.com/feedback...
+17:59:14 | INFO | [EXTRACT] Main content: 829 chars before extraction
+17:59:14 | INFO | [EXTRACT] Pre-exclude text: 85 words
+17:59:14 | INFO | [EXTRACT] Post-exclude text: 103 words
+17:59:14 | WARNING | [SKIP] https://me.sap.com/getassistance/cross-capabilities — near-duplicate of https://me.sap.com/getassistance
+17:59:14 | INFO | [2] Crawling: https://me.sap.com/calendar/plannedeventsforcloudservices
+17:59:19 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:59:21 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:59:21 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/calendar/plannedeventsforcloudservices
+17:59:21 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:59:22 | INFO | [MONITOR] pages=12 skip=3 fail=10 queue=21 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34790ms p95=88621ms words/pg=194 elapsed=341s
+17:59:24 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+17:59:24 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+17:59:26 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:59:27 | INFO | [SPA-NAV] Discovered 17 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:59:27 | INFO | [EXTRACT] Main content: 839 chars before extraction
+17:59:27 | INFO | [EXTRACT] Pre-exclude text: 56 words
+17:59:27 | INFO | [EXTRACT] Post-exclude text: 116 words
+17:59:28 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:59:28 | WARNING | [SKIP] https://me.sap.com/calendar/calendar — near-duplicate of https://me.sap.com/calendar
+17:59:28 | INFO | [2] Crawling: https://me.sap.com/financelegal/overview
+17:59:30 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+17:59:30 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+17:59:32 | INFO | [MONITOR] pages=12 skip=4 fail=10 queue=20 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=34926ms p95=88621ms words/pg=194 elapsed=351s
+17:59:34 | INFO | [SPA-NAV] Discovered 17 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:59:34 | INFO | [EXTRACT] Main content: 839 chars before extraction
+17:59:34 | INFO | [EXTRACT] Pre-exclude text: 56 words
+17:59:34 | INFO | [EXTRACT] Post-exclude text: 116 words
+17:59:34 | WARNING | [SKIP] https://me.sap.com/calendar/maintenancedeliveries — near-duplicate of https://me.sap.com/calendar
+17:59:34 | INFO | [2] Crawling: https://me.sap.com/financelegal/cloud
+17:59:35 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/overview
+17:59:35 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:59:42 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/cloud
+17:59:42 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+17:59:42 | INFO | [MONITOR] pages=12 skip=5 fail=10 queue=19 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35059ms p95=88621ms words/pg=194 elapsed=361s
+17:59:44 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+17:59:46 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+17:59:49 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+17:59:49 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+17:59:52 | INFO | [MONITOR] pages=12 skip=5 fail=10 queue=19 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35059ms p95=88621ms words/pg=194 elapsed=371s
+17:59:52 | INFO | [SPA-NAV] Discovered 17 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+17:59:52 | INFO | [EXTRACT] Main content: 839 chars before extraction
+17:59:52 | INFO | [EXTRACT] Pre-exclude text: 56 words
+17:59:53 | INFO | [EXTRACT] Post-exclude text: 116 words
+17:59:53 | WARNING | [SKIP] https://me.sap.com/calendar/plannedeventsforcloudservices — near-duplicate of https://me.sap.com/calendar
+17:59:53 | INFO | [2] Crawling: https://me.sap.com/financelegal/on-premise
+17:59:58 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:00:00 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/on-premise
+18:00:00 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:00:00 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:00:02 | INFO | [MONITOR] pages=12 skip=6 fail=10 queue=18 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35170ms p95=88621ms words/pg=194 elapsed=381s
+18:00:02 | INFO | [SAP-UI5] Table scroll complete: 5 rows after 3 scrolls
+18:00:02 | INFO | [SAP-UI5] Virtual table: 5 rows rendered
+18:00:05 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:00:06 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:00:06 | INFO | [EXTRACT] Main content: 1913 chars before extraction
+18:00:06 | INFO | [EXTRACT] Pre-exclude text: 210 words
+18:00:06 | INFO | [EXTRACT] Post-exclude text: 254 words
+18:00:06 | WARNING | [SKIP] https://me.sap.com/financelegal/overview — near-duplicate of https://me.sap.com/financelegal
+18:00:06 | INFO | [2] Crawling: https://me.sap.com/financelegal/enterpriseagreements
+18:00:07 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:00:09 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+18:00:09 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+18:00:12 | INFO | [MONITOR] pages=12 skip=7 fail=10 queue=17 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35282ms p95=88621ms words/pg=194 elapsed=391s
+18:00:13 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:00:13 | INFO | [EXTRACT] Main content: 1000 chars before extraction
+18:00:13 | INFO | [EXTRACT] Pre-exclude text: 93 words
+18:00:13 | INFO | [EXTRACT] Post-exclude text: 109 words
+18:00:13 | INFO | [OK] https://me.sap.com/financelegal/cloud — 109 words, 22 links, 39009ms
+18:00:14 | INFO | [2] Crawling: https://me.sap.com/financelegal/billing
+18:00:14 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/enterpriseagreements
+18:00:14 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:00:21 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/billing
+18:00:21 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:00:22 | INFO | [MONITOR] pages=13 skip=7 fail=10 queue=16 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35406ms p95=88621ms words/pg=187 elapsed=401s
+18:00:23 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:00:25 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:00:27 | INFO | [SAP-UI5] Table scroll complete: 5 rows after 3 scrolls
+18:00:27 | INFO | [SAP-UI5] Virtual table: 5 rows rendered
+18:00:31 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:00:31 | INFO | [EXTRACT] Main content: 1913 chars before extraction
+18:00:31 | INFO | [EXTRACT] Pre-exclude text: 210 words
+18:00:31 | INFO | [EXTRACT] Post-exclude text: 254 words
+18:00:31 | WARNING | [SKIP] https://me.sap.com/financelegal/on-premise — near-duplicate of https://me.sap.com/financelegal
+18:00:31 | INFO | [2] Crawling: https://me.sap.com/financelegal/consumption
+18:00:32 | INFO | [MONITOR] pages=13 skip=8 fail=10 queue=15 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35500ms p95=88621ms words/pg=187 elapsed=411s
+18:00:37 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:00:38 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/consumption
+18:00:38 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:00:39 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:00:41 | INFO | [SAP-UI5] Table scroll complete: 5 rows after 3 scrolls
+18:00:41 | INFO | [SAP-UI5] Virtual table: 5 rows rendered
+18:00:42 | INFO | [MONITOR] pages=13 skip=8 fail=10 queue=15 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35500ms p95=88621ms words/pg=187 elapsed=421s
+18:00:44 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:00:45 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:00:45 | INFO | [EXTRACT] Main content: 1913 chars before extraction
+18:00:45 | INFO | [EXTRACT] Pre-exclude text: 210 words
+18:00:45 | INFO | [EXTRACT] Post-exclude text: 254 words
+18:00:45 | WARNING | [SKIP] https://me.sap.com/financelegal/enterpriseagreements — near-duplicate of https://me.sap.com/financelegal
+18:00:45 | INFO | [2] Crawling: https://me.sap.com/financelegal/businessai
+18:00:46 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:00:48 | INFO | [SAP-UI5] Table scroll complete: 2 rows after 3 scrolls
+18:00:48 | INFO | [SAP-UI5] Virtual table: 2 rows rendered
+18:00:52 | INFO | [MONITOR] pages=13 skip=9 fail=10 queue=14 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35605ms p95=88621ms words/pg=187 elapsed=431s
+18:00:52 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:00:52 | INFO | [EXTRACT] Main content: 590 chars before extraction
+18:00:52 | INFO | [EXTRACT] Pre-exclude text: 36 words
+18:00:53 | INFO | [EXTRACT] Post-exclude text: 47 words
+18:00:53 | INFO | [OK] https://me.sap.com/financelegal/billing — 47 words, 22 links, 39157ms
+18:00:53 | INFO | [2] Crawling: https://me.sap.com/financelegal/sustainability
+18:00:54 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/businessai
+18:00:54 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:01:01 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/financelegal/sustainability
+18:01:01 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:01:01 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:01:02 | INFO | [MONITOR] pages=14 skip=9 fail=10 queue=13 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35712ms p95=88621ms words/pg=177 elapsed=441s
+18:01:03 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:01:06 | INFO | [SAP-UI5] Table scroll complete: 5 rows after 3 scrolls
+18:01:06 | INFO | [SAP-UI5] Virtual table: 5 rows rendered
+18:01:10 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:01:10 | INFO | [EXTRACT] Main content: 1913 chars before extraction
+18:01:10 | INFO | [EXTRACT] Pre-exclude text: 210 words
+18:01:10 | INFO | [EXTRACT] Post-exclude text: 254 words
+18:01:10 | WARNING | [SKIP] https://me.sap.com/financelegal/consumption — near-duplicate of https://me.sap.com/financelegal
+18:01:10 | INFO | [2] Crawling: https://me.sap.com/servicessupport/overview
+18:01:12 | INFO | [MONITOR] pages=14 skip=10 fail=10 queue=12 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35792ms p95=88621ms words/pg=177 elapsed=451s
+18:01:17 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:01:17 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/overview
+18:01:17 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:01:19 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:01:22 | INFO | [SAP-UI5] Table scroll complete: 5 rows after 3 scrolls
+18:01:22 | INFO | [SAP-UI5] Virtual table: 5 rows rendered
+18:01:22 | INFO | [MONITOR] pages=14 skip=10 fail=10 queue=12 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35792ms p95=88621ms words/pg=177 elapsed=461s
+18:01:24 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:01:25 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:01:25 | INFO | [EXTRACT] Main content: 1913 chars before extraction
+18:01:25 | INFO | [EXTRACT] Pre-exclude text: 210 words
+18:01:26 | INFO | [EXTRACT] Post-exclude text: 254 words
+18:01:26 | WARNING | [SKIP] https://me.sap.com/financelegal/businessai — near-duplicate of https://me.sap.com/financelegal
+18:01:26 | INFO | [2] Crawling: https://me.sap.com/servicessupport/knowledgesearch
+18:01:26 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:01:29 | INFO | [SAP-UI5] Table scroll complete: 5 rows after 3 scrolls
+18:01:29 | INFO | [SAP-UI5] Virtual table: 5 rows rendered
+18:01:32 | INFO | [MONITOR] pages=14 skip=11 fail=10 queue=11 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=35916ms p95=88621ms words/pg=177 elapsed=471s
+18:01:32 | INFO | [SPA-NAV] Discovered 22 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:01:32 | INFO | [EXTRACT] Main content: 1913 chars before extraction
+18:01:32 | INFO | [EXTRACT] Pre-exclude text: 210 words
+18:01:33 | INFO | [EXTRACT] Post-exclude text: 254 words
+18:01:33 | WARNING | [SKIP] https://me.sap.com/financelegal/sustainability — near-duplicate of https://me.sap.com/financelegal
+18:01:33 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/knowledgesearch
+18:01:33 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:01:33 | INFO | [2] Crawling: https://me.sap.com/servicessupport/kbasnotes
+18:01:41 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:01:41 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/kbasnotes
+18:01:41 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:01:42 | INFO | [MONITOR] pages=14 skip=12 fail=10 queue=10 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36023ms p95=88621ms words/pg=177 elapsed=481s
+18:01:43 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:01:45 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:01:45 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:01:48 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:01:48 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:01:48 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:01:48 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:01:48 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:01:48 | WARNING | [SKIP] https://me.sap.com/servicessupport/overview — near-duplicate of https://me.sap.com/servicessupport
+18:01:48 | INFO | [2] Crawling: https://me.sap.com/servicessupport/cases
+18:01:52 | INFO | [MONITOR] pages=14 skip=13 fail=10 queue=9 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36080ms p95=88621ms words/pg=177 elapsed=491s
+18:01:55 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/cases
+18:01:55 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:01:56 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:01:58 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:02:00 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:02:00 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:02:02 | INFO | [MONITOR] pages=14 skip=13 fail=10 queue=9 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36080ms p95=88621ms words/pg=177 elapsed=501s
+18:02:03 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:02:03 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:02:03 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:02:03 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:02:03 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:02:03 | WARNING | [SKIP] https://me.sap.com/servicessupport/knowledgesearch — near-duplicate of https://me.sap.com/servicessupport
+18:02:04 | INFO | [2] Crawling: https://me.sap.com/servicessupport/servicerequests
+18:02:04 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:02:06 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:02:09 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:02:09 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:02:11 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/servicerequests
+18:02:11 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:02:12 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:02:12 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:02:12 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:02:12 | INFO | [MONITOR] pages=14 skip=14 fail=10 queue=8 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36120ms p95=88621ms words/pg=177 elapsed=511s
+18:02:12 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:02:12 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:02:12 | WARNING | [SKIP] https://me.sap.com/servicessupport/kbasnotes — near-duplicate of https://me.sap.com/servicessupport
+18:02:12 | INFO | [2] Crawling: https://me.sap.com/servicessupport/services
+18:02:18 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:02:19 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/services
+18:02:19 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:02:20 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:02:22 | INFO | [MONITOR] pages=14 skip=15 fail=10 queue=7 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36194ms p95=88621ms words/pg=177 elapsed=521s
+18:02:23 | INFO | [SAP-UI5] Table scroll complete: 2 rows after 3 scrolls
+18:02:23 | INFO | [SAP-UI5] Virtual table: 2 rows rendered
+18:02:26 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:02:27 | INFO | [EXTRACT] Main content: 643 chars before extraction
+18:02:27 | INFO | [EXTRACT] Pre-exclude text: 17 words
+18:02:27 | INFO | [EXTRACT] Post-exclude text: 34 words
+18:02:27 | INFO | [SAP-UI5] Extracted 5 tables, 8 total rows
+18:02:27 | INFO | [OK] https://me.sap.com/servicessupport/cases — 320 words, 25 links, 38474ms
+18:02:27 | INFO | [2] Crawling: https://me.sap.com/servicessupport/supportengagements
+18:02:32 | INFO | [MONITOR] pages=15 skip=15 fail=10 queue=6 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36251ms p95=88621ms words/pg=187 elapsed=531s
+18:02:34 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/supportengagements
+18:02:34 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:02:34 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:02:36 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:02:39 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+18:02:39 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+18:02:42 | INFO | [MONITOR] pages=15 skip=15 fail=10 queue=6 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36251ms p95=88621ms words/pg=187 elapsed=541s
+18:02:42 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:02:42 | INFO | [EXTRACT] Main content: 529 chars before extraction
+18:02:42 | INFO | [EXTRACT] Pre-exclude text: 20 words
+18:02:42 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:02:42 | INFO | [EXTRACT] Post-exclude text: 27 words
+18:02:42 | INFO | [OK] https://me.sap.com/servicessupport/servicerequests — 27 words, 25 links, 38758ms
+18:02:43 | INFO | [2] Crawling: https://me.sap.com/servicessupport/diagnostics,reportinganalytics
+18:02:44 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:02:47 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:02:47 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:02:49 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/diagnostics,reportinganal
+18:02:49 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:02:49 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:02:49 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:02:50 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:02:50 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:02:50 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:02:50 | WARNING | [SKIP] https://me.sap.com/servicessupport/services — near-duplicate of https://me.sap.com/servicessupport
+18:02:50 | INFO | [2] Crawling: https://me.sap.com/servicessupport/alm
+18:02:52 | INFO | [MONITOR] pages=16 skip=16 fail=10 queue=4 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36349ms p95=86705ms words/pg=177 elapsed=551s
+18:02:57 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:02:58 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/alm
+18:02:58 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:02:59 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:03:01 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:03:01 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:03:02 | INFO | [MONITOR] pages=16 skip=16 fail=10 queue=4 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36349ms p95=86705ms words/pg=177 elapsed=561s
+18:03:04 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:03:04 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:03:04 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:03:04 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:03:04 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:03:04 | WARNING | [SKIP] https://me.sap.com/servicessupport/supportengagements — near-duplicate of https://me.sap.com/servicessupport
+18:03:05 | INFO | [2] Crawling: https://me.sap.com/servicessupport/privatecloudworkspace
+18:03:11 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/privatecloudworkspace
+18:03:11 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:03:12 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:03:12 | INFO | [MONITOR] pages=16 skip=17 fail=10 queue=3 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36371ms p95=86705ms words/pg=177 elapsed=571s
+18:03:14 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:03:16 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:03:16 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:03:19 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:03:19 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:03:19 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:03:19 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:03:19 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:03:19 | WARNING | [SKIP] https://me.sap.com/servicessupport/diagnostics,reportinganalytics — near-duplicate of https://me.sap.com/servicessupport
+18:03:19 | INFO | [2] Crawling: https://me.sap.com/servicessupport/moreresources
+18:03:21 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:03:22 | INFO | [MONITOR] pages=16 skip=18 fail=10 queue=2 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36378ms p95=86705ms words/pg=177 elapsed=581s
+18:03:23 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:03:25 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+18:03:25 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+18:03:26 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/servicessupport/moreresources
+18:03:26 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:03:29 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:03:29 | INFO | [EXTRACT] Main content: 1746 chars before extraction
+18:03:29 | INFO | [EXTRACT] Pre-exclude text: 181 words
+18:03:29 | INFO | [EXTRACT] Post-exclude text: 200 words
+18:03:29 | INFO | [OK] https://me.sap.com/servicessupport/alm — 200 words, 25 links, 39113ms
+18:03:30 | INFO | [2] Crawling: https://me.sap.com/userscontacts/overview
+18:03:32 | INFO | [MONITOR] pages=17 skip=18 fail=10 queue=1 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36439ms p95=86705ms words/pg=178 elapsed=591s
+18:03:34 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:03:36 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/userscontacts/overview
+18:03:36 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:03:36 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:03:39 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:03:39 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:03:41 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:03:41 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:03:42 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:03:42 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:03:42 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:03:42 | WARNING | [SKIP] https://me.sap.com/servicessupport/privatecloudworkspace — near-duplicate of https://me.sap.com/servicessupport
+18:03:42 | INFO | [MONITOR] pages=17 skip=19 fail=10 queue=1 workers=2/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36455ms p95=86705ms words/pg=178 elapsed=601s
+18:03:42 | INFO | [2] Crawling: https://me.sap.com/userscontacts/myimportantcontacts
+18:03:48 | INFO | [SAP-UI5] Detected UI5/Fiori page: https://me.sap.com/userscontacts/myimportantcontacts
+18:03:48 | INFO | [SAP-UI5] Waiting for UI5 framework ready...
+18:03:49 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:03:51 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:03:52 | INFO | [MONITOR] pages=17 skip=19 fail=10 queue=0 workers=3/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36455ms p95=86705ms words/pg=178 elapsed=611s
+18:03:54 | INFO | [SAP-UI5] Table scroll complete: 30 rows after 3 scrolls
+18:03:54 | INFO | [SAP-UI5] Virtual table: 30 rows rendered
+18:03:56 | INFO | [SPA-NAV] Discovered 25 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:03:56 | INFO | [EXTRACT] Main content: 1978 chars before extraction
+18:03:56 | INFO | [EXTRACT] Pre-exclude text: 238 words
+18:03:57 | INFO | [EXTRACT] Post-exclude text: 230 words
+18:03:57 | INFO | [SAP-UI5] Extracted 7 tables, 28 total rows
+18:03:57 | WARNING | [SKIP] https://me.sap.com/servicessupport/moreresources — near-duplicate of https://me.sap.com/servicessupport
+18:03:59 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:04:01 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:04:02 | INFO | [MONITOR] pages=17 skip=20 fail=10 queue=0 workers=2/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36472ms p95=86705ms words/pg=178 elapsed=621s
+18:04:04 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+18:04:04 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+18:04:07 | INFO | [SPA-NAV] Discovered 16 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:04:07 | INFO | [EXTRACT] Main content: 1047 chars before extraction
+18:04:07 | INFO | [EXTRACT] Pre-exclude text: 113 words
+18:04:07 | INFO | [EXTRACT] Post-exclude text: 129 words
+18:04:07 | WARNING | [SKIP] https://me.sap.com/userscontacts/overview — near-duplicate of https://me.sap.com/userscontacts
+18:04:11 | INFO | [SAP-UI5] UI5 ready — proceeding with extraction
+18:04:12 | INFO | [MONITOR] pages=17 skip=21 fail=10 queue=0 workers=1/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36501ms p95=86705ms words/pg=178 elapsed=631s
+18:04:13 | INFO | [SAP-UI5] Scrolling virtual table: .sapMList
+18:04:16 | INFO | [SAP-UI5] Table scroll complete: 1 rows after 3 scrolls
+18:04:16 | INFO | [SAP-UI5] Virtual table: 1 rows rendered
+18:04:20 | INFO | [SPA-NAV] Discovered 16 URLs from sidebar/tabs/nav: https://me.sap.com/getassistance/overview, https://status.me.sap.com/, https://me.sap.com/home, https://me.sap.com/calendar, https://me.sap.com/reporting, https://me.sap.com/dashboards, https://me.sap.com/financelegal, https://me.sap.com/portfolioproducts...
+18:04:20 | INFO | [EXTRACT] Main content: 1047 chars before extraction
+18:04:20 | INFO | [EXTRACT] Pre-exclude text: 113 words
+18:04:20 | INFO | [EXTRACT] Post-exclude text: 129 words
+18:04:20 | WARNING | [SKIP] https://me.sap.com/userscontacts/myimportantcontacts — near-duplicate of https://me.sap.com/userscontacts
+18:04:22 | INFO | [MONITOR] pages=17 skip=22 fail=10 queue=0 workers=0/3 speed=0.1 p/s (rolling) 0.0 p/s (overall) avg=36529ms p95=86705ms words/pg=178 elapsed=641s
+18:04:23 | INFO | 
+=================================================================
+  CRAWL PERFORMANCE SUMMARY
+=================================================================
+  Pages crawled:       17
+  Pages skipped:       22 (empty/cookie/loading)
+  Pages failed:        10
+  Pages retried:       5
+  Total enqueued:      44
+-----------------------------------------------------------------
+  Overall speed:       0.03 pages/sec
+  Rolling speed (30s): 0.10 pages/sec
+  Avg page time:       36529 ms
+  Avg navigate time:   43117 ms
+  Avg extract time:    382 ms
+  P95 page time:       86705 ms
+-----------------------------------------------------------------
+  Queue peak:          31
+  Workers:             3
+  Links discovered:    826
+-----------------------------------------------------------------
+  Total words:         3,030
+  Avg words/page:      178
+  Total bytes:         958,503
+-----------------------------------------------------------------
+  Elapsed time:        642.4 s
+  Stop reason:         Queue exhausted — only 17 useful pages found on this site (skipped 22, requested 25)
+=================================================================
+18:04:23 | INFO | [PIPELINE] Transforming 17 pages into RAG documents...
+18:04:23 | INFO | [PIPELINE] Done: 17 docs, 32 chunks, 3,030 words
+18:04:23 | INFO | Crawl returned 17 pages — exporting...
+[Page 1/25] https://me.sap.com/getassistance...
+[Page 3/25] https://me.sap.com/calendar...
+[Page 4/25] https://me.sap.com/home...
+[Page 5/25] https://me.sap.com/reporting...
+[Page 6/25] https://me.sap.com/financelegal...
+[Page 7/25] https://me.sap.com/servicessupport...
+[Page 8/25] https://me.sap.com/userscontacts...
+[Page 9/25] https://me.sap.com/getassistance/reporting...
+[Page 10/25] https://me.sap.com/getassistance/financelegal...
+[Page 12/25] https://me.sap.com/getassistance/servicessupport...
+[Page 13/25] https://me.sap.com/getassistance/systemsprovisioning...
+[Page 14/25] https://me.sap.com/getassistance/userscontacts...
+[Page 20/25] https://me.sap.com/financelegal/cloud...
+[Page 23/25] https://me.sap.com/financelegal/billing...
+[Page 30/25] https://me.sap.com/servicessupport/cases...
+[Page 31/25] https://me.sap.com/servicessupport/servicerequests...
+[Page 35/25] https://me.sap.com/servicessupport/alm...
+
+----------------------------------------
+  Exported: sap_test4.json
+----------------------------------------
+
+=================================================================
+CRAWL COMPLETE
+=================================================================
+  Total pages crawled: 17
+  Pages skipped:       22 (empty/cookie/loading)
+  Failed pages:        10
+  Pages retried:       5
+  Total time:          642.4s
+  Overall speed:       0.03 pages/sec
+  Rolling speed (30s): 0.10 pages/sec
+  Avg page time:       36529 ms
+  P95 page time:       86705 ms
+  Workers:             3
+  Queue peak:          31
+  Total words:         3,030
+  Avg words/page:      178
+  Interactions:        0
+  Stop reason:         Queue exhausted — only 17 useful pages found on this site (skipped 22, requested 25)
+=================================================================
